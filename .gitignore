@@ -1,0 +1,4 @@
+# Holds the parent PIN, kids' names and check-offs; stays on this computer only.
+data.json
+*.tmp
+__pycache__/

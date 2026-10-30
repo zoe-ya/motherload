@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en" data-theme="blocks">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My School Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Nunito:wght@700;800;900&family=Patrick+Hand&family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 20px 24px 32px; }
+
+  /* Header HUD */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  .hello { display: flex; align-items: center; gap: 16px; }
+  .avatar { width: 72px; height: 72px; background: var(--accent); border: 4px solid #000; display: grid; place-items: center; font-size: 38px;
+    box-shadow: inset 4px 4px 0 rgba(255,255,255,.45), inset -4px -4px 0 rgba(0,0,0,.35); }
+  .hello h1 { margin: 0; font-family: var(--pixel); font-size: 22px; line-height: 1.5; color: #fff; text-shadow: 3px 3px 0 #000; }
+  .hello p { margin: 4px 0 0; color: #fff; font-size: 26px; text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000; }
+  .clock { text-align: right; color: #fff; text-shadow: 4px 4px 0 #000; }
+  .clock .label { font-family: var(--pixel); font-size: 12px; letter-spacing: 2px; }
+  .clock .time { font-family: var(--pixel); font-size: 46px; line-height: 1.2; margin-top: 6px; }
+  .clock .time small { font-size: 18px; margin-left: 8px; }
+  .clock .date { font-family: var(--pixel); font-size: 12px; margin-top: 8px; color: var(--gold); }
+
+  /* Layout */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .clock { text-align: left; } }
+  .card h2 .count { margin-left: auto; font-size: 10px; color: #555; }
+  .empty { color: #555; font-size: 24px; padding: 4px 0; }
+
+  /* Tasks: inventory slots that turn into gold blocks when done */
+  .xp { position: relative; height: 18px; background: #222; border: 3px solid #000; margin: -4px 0 14px; }
+  .xp > div { height: 100%; background: var(--xp); box-shadow: inset 0 -4px 0 #4ca80f; transition: width .4s steps(8); }
+  .xp span { position: absolute; left: 50%; top: -14px; transform: translateX(-50%); font-family: var(--pixel); font-size: 12px; color: var(--xp); text-shadow: 2px 2px 0 #000, -2px -2px 0 #000; }
+  .task { display: flex; align-items: center; gap: 14px; padding: 8px; cursor: pointer; user-select: none; }
+  .task:hover { background: rgba(255,255,255,.35); }
+  .box { width: 40px; height: 40px; flex: none; background: var(--panel-dark); display: grid; place-items: center;
+    box-shadow: inset 3px 3px 0 #373737, inset -3px -3px 0 #fff; font-family: var(--pixel); font-size: 16px; color: #fff; }
+  .task.done .box { background: var(--gold); border: 3px solid #000; box-shadow: inset 3px 3px 0 #ffe08a, inset -3px -3px 0 var(--gold-dark); text-shadow: 2px 2px 0 var(--gold-dark); animation: bump .25s; }
+  @keyframes bump { 40% { transform: translateY(-10px); } }
+  .task .t { font-size: 28px; line-height: 1; }
+  .task .n { font-size: 20px; color: #555; }
+  .task.done .t { text-decoration: line-through; color: #6b6b6b; }
+  .allDone { text-align: center; font-family: var(--pixel); font-size: 13px; line-height: 1.6; color: #fff; text-shadow: 2px 2px 0 #000;
+    padding: 14px; background: #3cb043; border: 3px solid #000; margin-top: 12px; }
+
+  /* Today's events */
+  .event { display: flex; gap: 14px; align-items: center; padding: 8px 0; border-bottom: 3px dotted var(--panel-dark); }
+  .event:last-child { border-bottom: 0; }
+  .event .when { min-width: 110px; font-family: var(--pixel); font-size: 11px; color: var(--accent); }
+  .event .t { font-size: 28px; line-height: 1; }
+  .event .n { color: #555; font-size: 20px; }
+
+  /* Reminders: wooden signs */
+  .notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+  .note { background: var(--plank); border: 3px solid #000; padding: 12px 14px; font-size: 24px; line-height: 1.05; color: #2b1d0e;
+    background-image: repeating-linear-gradient(0deg, transparent 0 22px, var(--plank-dark) 22px 24px); }
+  .note .n { font-size: 19px; color: #4a3417; margin-top: 4px; }
+
+  /* Timer */
+  .timer { text-align: center; }
+  .timer svg { width: min(100%, 380px); height: auto; display: block; margin: 0 auto; }
+  .timer .readout { font-family: var(--pixel); font-size: 34px; margin-top: 10px; }
+  .timer .zone { font-family: var(--pixel); font-size: 11px; color: #555; min-height: 20px; margin-top: 10px; }
+  .presets { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 16px 0 10px; }
+  .btn.preset.active { background: #e45c10; box-shadow: inset 3px 3px 0 #ffa36c, inset -3px -4px 0 #8a3200; text-shadow: 2px 2px 0 #8a3200; }
+  .controls { display: flex; gap: 10px; justify-content: center; }
+  .btn.go { min-width: 140px; }
+  .timer.finished .readout { color: #d83a2b; animation: blink .6s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .timer.big { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; }
+  .timer.big svg { width: min(72vh, 90vw); }
+
+  /* Week: one block per day */
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+  @media (max-width: 900px) { .week { grid-template-columns: repeat(2, 1fr); } }
+  .day { background: #a0a0a0; border: 3px solid #000; padding: 10px; min-height: 130px; box-shadow: inset 3px 3px 0 #d0d0d0, inset -3px -3px 0 #6a6a6a; }
+  .day.today { background: var(--gold); box-shadow: inset 3px 3px 0 #ffe08a, inset -3px -3px 0 var(--gold-dark); }
+  .day h3 { margin: 0 0 8px; font-family: var(--pixel); font-size: 10px; line-height: 1.5; }
+  .day h3 small { display: block; font-family: var(--body); font-size: 20px; color: #333; }
+  .chip { font-size: 21px; line-height: 1; background: #fff; border: 2px solid #000; padding: 5px 7px; margin-bottom: 6px; border-left: 8px solid var(--accent); }
+  .chip.task { border-left-color: #3cb043; }
+  .chip.reminder { border-left-color: var(--plank); }
+  .chip small { display: block; color: #555; font-size: 18px; }
+  .chip { cursor: default; }
+  .chip.done { text-decoration: line-through; opacity: .6; }
+  .chip.done::before { content: "✓ "; }
+
+  /* Player select */
+  .picker { min-height: 85vh; display: grid; place-items: center; text-align: center; position: relative; z-index: 1; }
+  .picker h1 { font-family: var(--pixel); font-size: 26px; line-height: 1.6; color: #fff; text-shadow: 4px 4px 0 #000; margin-bottom: 36px; }
+  .picker .choices { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; }
+  .picker button { font-family: var(--pixel); font-size: 16px; border: 4px solid #000; cursor: pointer; padding: 28px 36px; color: #fff; text-shadow: 3px 3px 0 #000;
+    box-shadow: inset 5px 5px 0 rgba(255,255,255,.4), inset -5px -5px 0 rgba(0,0,0,.35), 6px 6px 0 rgba(0,0,0,.3); }
+  .picker button:hover { transform: translateY(-6px); }
+  .picker button span { display: block; font-size: 60px; margin-bottom: 14px; text-shadow: none; }
+  /* Links inside tasks, events and reminders */
+  a.link { display: inline-block; font-family: var(--pixel); font-size: 10px; color: #fff; background: #1d4ed8; border: 2px solid #000; padding: 5px 8px; margin: 4px 0; text-decoration: none; text-shadow: 1px 1px 0 #000; }
+  a.link:hover { background: #2563eb; }
+  html[data-theme="jump"] a.link { border-radius: 8px; }
+  .zoneWide { display: flex; flex-direction: column; gap: 22px; margin-top: 22px; }
+  .grid.one { grid-template-columns: 1fr; }
+  .stash { display: none; }
+
+  /* Verse of the week */
+  .verse blockquote { margin: 0; font-size: 28px; line-height: 1.15; }
+  .verse .ref { margin-top: 12px; font-family: var(--pixel); font-size: 11px; color: var(--accent); text-align: right; }
+  html[data-theme="jump"] .verse blockquote { font-size: 22px; line-height: 1.35; }
+
+  /* Doodle pad */
+  .doodle canvas { width: 100%; height: auto; display: block; background: #fff; border: 4px solid #000; touch-action: none; cursor: crosshair; }
+  html[data-theme="jump"] .doodle canvas { border-radius: 12px; }
+  .dtools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .dtools .grp { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .dtools.stamps { margin-top: 8px; }
+  .dtools.stamps .tool { font-size: 20px; min-width: 40px; }
+  .sw { width: 32px; height: 32px; border: 3px solid #000; cursor: pointer; padding: 0; }
+  .sw.on, .tool.on { outline: 4px solid #fff; outline-offset: -1px; box-shadow: 0 0 0 7px #000; }
+  .sw.rainbow { background: linear-gradient(135deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7); }
+  .tool { min-width: 40px; height: 40px; border: 3px solid #000; background: #eee; cursor: pointer; font-size: 18px; display: grid; place-items: center; padding: 0 6px; }
+  .tool .dot { background: #000; border-radius: 50%; }
+  html[data-theme="jump"] .sw, html[data-theme="jump"] .tool { border-radius: 8px; }
+
+  .switch { color: #fff; text-shadow: 2px 2px 0 #000; font-size: 20px; text-align: center; margin-top: 24px; position: relative; z-index: 1; }
+  .switch a { color: inherit; }
+</style>
+<link rel="stylesheet" href="themes.css">
+</head>
+<body>
+<div class="clouds"><div class="cloud" style="top:70px;animation-duration:95s;animation-delay:-20s"></div><div class="cloud" style="top:190px;animation-duration:130s;animation-delay:-80s;transform:scale(1.4)"></div><div class="cloud" style="top:330px;animation-duration:115s;animation-delay:-50s"></div></div>
+<div class="hills"></div>
+<div class="blockdeco"><svg class="blockhills" viewBox="0 0 1600 260" preserveAspectRatio="xMidYMax slice"><path d="M0 260V160H80V130H160V110H260V130H320V150H420V120H500V90H600V70H700V90H760V120H860V140H960V110H1040V80H1140V100H1220V130H1320V150H1400V120H1500V100H1600V260Z" fill="#b9dca3"/><path d="M0 260V200H120V180H220V160H300V180H380V210H480V190H560V170H660V190H740V210H860V180H940V160H1060V150H1140V170H1240V200H1340V180H1440V170H1520V190H1600V260Z" fill="#94c77a"/><path d="M0 260V200H120V180H220V160H300V180H380V210H480V190H560V170H660V190H740V210H860V180H940V160H1060V150H1140V170H1240V200H1340V180H1440V170H1520V190H1600V260Z" fill="none" stroke="#7fb466" stroke-width="6"/></svg><div class="lamp" style="left:1.5%;animation-delay:0s"><svg viewBox="0 0 16 40" width="24" height="60" shape-rendering="crispEdges"><rect x="7" y="0" width="2" height="3" fill="#3a3a3a"/><rect x="4" y="3" width="8" height="2" fill="#3a3a3a"/><rect x="3" y="5" width="10" height="11" fill="#3a3a3a"/><rect x="5" y="7" width="6" height="7" fill="#ffd36b"/><rect x="6" y="8" width="4" height="5" fill="#fff3c4"/><rect x="4" y="16" width="8" height="2" fill="#3a3a3a"/><rect x="6" y="18" width="4" height="22" fill="#8b5a2b"/><rect x="6" y="18" width="1" height="22" fill="#a8743f"/></svg></div><div class="lamp" style="left:21%;animation-delay:-0.8s"><svg viewBox="0 0 16 40" width="24" height="60" shape-rendering="crispEdges"><rect x="7" y="0" width="2" height="3" fill="#3a3a3a"/><rect x="4" y="3" width="8" height="2" fill="#3a3a3a"/><rect x="3" y="5" width="10" height="11" fill="#3a3a3a"/><rect x="5" y="7" width="6" height="7" fill="#ffd36b"/><rect x="6" y="8" width="4" height="5" fill="#fff3c4"/><rect x="4" y="16" width="8" height="2" fill="#3a3a3a"/><rect x="6" y="18" width="4" height="22" fill="#8b5a2b"/><rect x="6" y="18" width="1" height="22" fill="#a8743f"/></svg></div><div class="lamp" style="left:48%;animation-delay:-1.6s"><svg viewBox="0 0 16 40" width="24" height="60" shape-rendering="crispEdges"><rect x="7" y="0" width="2" height="3" fill="#3a3a3a"/><rect x="4" y="3" width="8" height="2" fill="#3a3a3a"/><rect x="3" y="5" width="10" height="11" fill="#3a3a3a"/><rect x="5" y="7" width="6" height="7" fill="#ffd36b"/><rect x="6" y="8" width="4" height="5" fill="#fff3c4"/><rect x="4" y="16" width="8" height="2" fill="#3a3a3a"/><rect x="6" y="18" width="4" height="22" fill="#8b5a2b"/><rect x="6" y="18" width="1" height="22" fill="#a8743f"/></svg></div><div class="lamp" style="left:74%;animation-delay:-0.4s"><svg viewBox="0 0 16 40" width="24" height="60" shape-rendering="crispEdges"><rect x="7" y="0" width="2" height="3" fill="#3a3a3a"/><rect x="4" y="3" width="8" height="2" fill="#3a3a3a"/><rect x="3" y="5" width="10" height="11" fill="#3a3a3a"/><rect x="5" y="7" width="6" height="7" fill="#ffd36b"/><rect x="6" y="8" width="4" height="5" fill="#fff3c4"/><rect x="4" y="16" width="8" height="2" fill="#3a3a3a"/><rect x="6" y="18" width="4" height="22" fill="#8b5a2b"/><rect x="6" y="18" width="1" height="22" fill="#a8743f"/></svg></div><div class="lamp" style="left:97%;animation-delay:-1.2s"><svg viewBox="0 0 16 40" width="24" height="60" shape-rendering="crispEdges"><rect x="7" y="0" width="2" height="3" fill="#3a3a3a"/><rect x="4" y="3" width="8" height="2" fill="#3a3a3a"/><rect x="3" y="5" width="10" height="11" fill="#3a3a3a"/><rect x="5" y="7" width="6" height="7" fill="#ffd36b"/><rect x="6" y="8" width="4" height="5" fill="#fff3c4"/><rect x="4" y="16" width="8" height="2" fill="#3a3a3a"/><rect x="6" y="18" width="4" height="22" fill="#8b5a2b"/><rect x="6" y="18" width="1" height="22" fill="#a8743f"/></svg></div></div>
+<div class="mathdeco"><span style="left:6%;top:5%;font-size:55px;--r:16deg;animation-delay:-0.3s">+</span><span style="left:39%;top:34%;font-size:36px;--r:-2deg;animation-delay:-3.7s">−</span><span style="left:75%;top:57%;font-size:43px;--r:-23deg;animation-delay:-0.5s">×</span><span style="left:22%;top:78%;font-size:34px;--r:-10deg;animation-delay:-0.5s">÷</span><span style="left:61%;top:9%;font-size:33px;--r:11deg;animation-delay:-0.7s">%</span><span style="left:93%;top:36%;font-size:33px;--r:11deg;animation-delay:-3.7s">=</span><span style="left:37%;top:49%;font-size:44px;--r:-23deg;animation-delay:-3.5s">π</span><span style="left:70%;top:76%;font-size:56px;--r:-16deg;animation-delay:-3.4s">√</span><span style="left:10%;top:12%;font-size:49px;--r:10deg;animation-delay:-5.2s">+</span><span style="left:48%;top:27%;font-size:42px;--r:-2deg;animation-delay:-0.6s">×</span><span style="left:91%;top:60%;font-size:34px;--r:11deg;animation-delay:-0.3s">÷</span><span style="left:33%;top:75%;font-size:61px;--r:18deg;animation-delay:-3.4s">%</span><span style="left:67%;top:15%;font-size:50px;--r:4deg;animation-delay:-3.7s">≠</span><span style="left:9%;top:31%;font-size:49px;--r:-10deg;animation-delay:-5.0s">½</span><span style="left:41%;top:60%;font-size:45px;--r:-20deg;animation-delay:-3.6s">∞</span><span style="left:80%;top:80%;font-size:61px;--r:-4deg;animation-delay:-4.6s">²</span><span style="left:24%;top:7%;font-size:34px;--r:-18deg;animation-delay:-3.2s">−</span><span style="left:60%;top:28%;font-size:51px;--r:-16deg;animation-delay:-5.9s">÷</span><span style="left:2%;top:55%;font-size:32px;--r:17deg;animation-delay:-0.4s">×</span><span style="left:40%;top:81%;font-size:50px;--r:-4deg;animation-delay:-4.4s">+</span></div>
+<div class="jumpdeco"><div class="bee" style="top:150px;animation-duration:34s;animation-delay:-6s"><div class="bob"><svg viewBox="0 0 48 40" width="48" height="40"><ellipse class="wing" cx="20" cy="11" rx="9" ry="7" fill="#e6f6ff" stroke="#000" stroke-width="2"/><ellipse class="wing" cx="29" cy="10" rx="8" ry="6" fill="#e6f6ff" stroke="#000" stroke-width="2"/><path d="M7 23 L1 25 L7 27Z" fill="#000"/><ellipse cx="24" cy="25" rx="17" ry="11" fill="#ffd21f" stroke="#000" stroke-width="2.5"/><path d="M18 16 V34 M26 14.5 V35.5" stroke="#000" stroke-width="4"/><circle cx="35" cy="22" r="2.5" fill="#000"/><path d="M33 28 Q36 30.5 39 27" stroke="#000" stroke-width="1.6" fill="none"/></svg></div></div><div class="bee" style="top:420px;animation-duration:46s;animation-delay:-25s"><div class="bob" style="animation-duration:1.1s"><svg viewBox="0 0 48 40" width="48" height="40"><ellipse class="wing" cx="20" cy="11" rx="9" ry="7" fill="#e6f6ff" stroke="#000" stroke-width="2"/><ellipse class="wing" cx="29" cy="10" rx="8" ry="6" fill="#e6f6ff" stroke="#000" stroke-width="2"/><path d="M7 23 L1 25 L7 27Z" fill="#000"/><ellipse cx="24" cy="25" rx="17" ry="11" fill="#ffd21f" stroke="#000" stroke-width="2.5"/><path d="M18 16 V34 M26 14.5 V35.5" stroke="#000" stroke-width="4"/><circle cx="35" cy="22" r="2.5" fill="#000"/><path d="M33 28 Q36 30.5 39 27" stroke="#000" stroke-width="1.6" fill="none"/></svg></div></div><div class="bee small" style="top:260px;animation-duration:40s;animation-delay:-14s"><div class="bob" style="animation-duration:.8s"><svg viewBox="0 0 48 40" width="48" height="40"><ellipse class="wing" cx="20" cy="11" rx="9" ry="7" fill="#e6f6ff" stroke="#000" stroke-width="2"/><ellipse class="wing" cx="29" cy="10" rx="8" ry="6" fill="#e6f6ff" stroke="#000" stroke-width="2"/><path d="M7 23 L1 25 L7 27Z" fill="#000"/><ellipse cx="24" cy="25" rx="17" ry="11" fill="#ffd21f" stroke="#000" stroke-width="2.5"/><path d="M18 16 V34 M26 14.5 V35.5" stroke="#000" stroke-width="4"/><circle cx="35" cy="22" r="2.5" fill="#000"/><path d="M33 28 Q36 30.5 39 27" stroke="#000" stroke-width="1.6" fill="none"/></svg></div></div><div class="flower" style="left:2%;animation-delay:0s"><svg viewBox="0 0 40 64" width="40" height="64"><path d="M20 30 V64" stroke="#1f7a1f" stroke-width="4"/><path d="M20 50 Q8 44 6 36 Q16 38 20 46Z M20 56 Q32 50 34 42 Q24 44 20 52Z" fill="#2fa52f" stroke="#000" stroke-width="1.5"/><circle cx="20" cy="11" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="28.549999999999997" cy="17.21" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="25.31" cy="27.29" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="14.690000000000001" cy="27.29" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="11.450000000000001" cy="17.21" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffd21f" stroke="#000" stroke-width="2"/></svg></div><div class="flower" style="left:7%;animation-delay:-1.2s"><svg viewBox="0 0 40 64" width="40" height="64"><path d="M20 30 V64" stroke="#1f7a1f" stroke-width="4"/><path d="M20 50 Q8 44 6 36 Q16 38 20 46Z M20 56 Q32 50 34 42 Q24 44 20 52Z" fill="#2fa52f" stroke="#000" stroke-width="1.5"/><circle cx="20" cy="11" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="28.549999999999997" cy="17.21" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="25.31" cy="27.29" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="14.690000000000001" cy="27.29" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="11.450000000000001" cy="17.21" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffd21f" stroke="#000" stroke-width="2"/></svg></div><div class="flower" style="left:24%;animation-delay:-0.6s"><svg viewBox="0 0 40 64" width="40" height="64"><path d="M20 30 V64" stroke="#1f7a1f" stroke-width="4"/><path d="M20 50 Q8 44 6 36 Q16 38 20 46Z M20 56 Q32 50 34 42 Q24 44 20 52Z" fill="#2fa52f" stroke="#000" stroke-width="1.5"/><circle cx="20" cy="11" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="28.549999999999997" cy="17.21" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="25.31" cy="27.29" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="14.690000000000001" cy="27.29" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="11.450000000000001" cy="17.21" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffd21f" stroke="#000" stroke-width="2"/></svg></div><div class="flower" style="left:60%;animation-delay:-2s"><svg viewBox="0 0 40 64" width="40" height="64"><path d="M20 30 V64" stroke="#1f7a1f" stroke-width="4"/><path d="M20 50 Q8 44 6 36 Q16 38 20 46Z M20 56 Q32 50 34 42 Q24 44 20 52Z" fill="#2fa52f" stroke="#000" stroke-width="1.5"/><circle cx="20" cy="11" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="28.549999999999997" cy="17.21" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="25.31" cy="27.29" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="14.690000000000001" cy="27.29" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="11.450000000000001" cy="17.21" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffd21f" stroke="#000" stroke-width="2"/></svg></div><div class="flower" style="left:71%;animation-delay:-0.9s"><svg viewBox="0 0 40 64" width="40" height="64"><path d="M20 30 V64" stroke="#1f7a1f" stroke-width="4"/><path d="M20 50 Q8 44 6 36 Q16 38 20 46Z M20 56 Q32 50 34 42 Q24 44 20 52Z" fill="#2fa52f" stroke="#000" stroke-width="1.5"/><circle cx="20" cy="11" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="28.549999999999997" cy="17.21" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="25.31" cy="27.29" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="14.690000000000001" cy="27.29" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="11.450000000000001" cy="17.21" r="7" fill="#ff6fae" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffd21f" stroke="#000" stroke-width="2"/></svg></div><div class="flower" style="left:91%;animation-delay:-1.6s"><svg viewBox="0 0 40 64" width="40" height="64"><path d="M20 30 V64" stroke="#1f7a1f" stroke-width="4"/><path d="M20 50 Q8 44 6 36 Q16 38 20 46Z M20 56 Q32 50 34 42 Q24 44 20 52Z" fill="#2fa52f" stroke="#000" stroke-width="1.5"/><circle cx="20" cy="11" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="28.549999999999997" cy="17.21" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="25.31" cy="27.29" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="14.690000000000001" cy="27.29" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="11.450000000000001" cy="17.21" r="7" fill="#ff4d4d" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffd21f" stroke="#000" stroke-width="2"/></svg></div><div class="flower" style="left:96%;animation-delay:-0.3s"><svg viewBox="0 0 40 64" width="40" height="64"><path d="M20 30 V64" stroke="#1f7a1f" stroke-width="4"/><path d="M20 50 Q8 44 6 36 Q16 38 20 46Z M20 56 Q32 50 34 42 Q24 44 20 52Z" fill="#2fa52f" stroke="#000" stroke-width="1.5"/><circle cx="20" cy="11" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="28.549999999999997" cy="17.21" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="25.31" cy="27.29" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="14.690000000000001" cy="27.29" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="11.450000000000001" cy="17.21" r="7" fill="#ffffff" stroke="#000" stroke-width="2"/><circle cx="20" cy="20" r="6" fill="#ffd21f" stroke="#000" stroke-width="2"/></svg></div></div>
+<div class="ground"></div>
+<div id="app"></div>
+
+<script src="common.js"></script>
+<script>
+const app = document.getElementById("app");
+const params = new URLSearchParams(location.search);
+let kidId = params.get("kid") || safeGet("kid");
+let data = null;
+let lastDate = ymd(new Date());
+
+function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+/* ---------- Data ---------- */
+async function refresh() {
+  try {
+    data = await api("/api/data");
+    render();
+  } catch (e) {
+    if (!data) app.innerHTML = `<div class="picker"><div><h1>Can't reach the start page 😕</h1><p>Make sure the home computer is on, then refresh.</p></div></div>`;
+  }
+}
+
+function me() { return data?.settings.kids.find((s) => s.id === kidId); }
+
+/* ---------- Render ---------- */
+function render() {
+  const kid = me();
+  if (!kid) return renderPicker();
+  document.documentElement.style.setProperty("--accent", kid.color);
+  document.documentElement.style.setProperty("--accent-soft", kid.color + "22");
+  document.title = `${kid.name}'s School Day`;
+
+  if (!document.getElementById("main")) buildShell();
+  applyTheme();
+  document.getElementById("avatar").textContent = kid.emoji || "🙂";
+  document.getElementById("helloName").textContent = `${greeting()}, ${kid.name}!`;
+  placeWidgets();
+  renderVerse();
+  renderToday();
+  renderWeek();
+}
+
+// Each kid's look is remembered on their own computer.
+function applyTheme() {
+  const saved = safeGet("theme-" + kidId);
+  const t = ["jump", "blueprint"].includes(saved) ? saved : "blocks";
+  document.documentElement.dataset.theme = t;
+  document.querySelectorAll(".themes button").forEach((b) => b.classList.toggle("on", b.dataset.theme === t));
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
+
+function renderPicker() {
+  const s = data.settings.kids;
+  app.innerHTML = `<div class="picker"><div>
+    <h1>Choose your player</h1>
+    <div class="choices">${s.map((k) => `<button style="background:${esc(k.color)}" data-id="${esc(k.id)}"><span>${esc(k.emoji)}</span>${esc(k.name)}</button>`).join("")}</div>
+  </div></div>`;
+  app.querySelectorAll("button").forEach((b) => b.onclick = () => {
+    kidId = b.dataset.id; safeSet("kid", kidId);
+    history.replaceState(null, "", "?kid=" + kidId);
+    app.innerHTML = ""; render();
+  });
+}
+
+function buildShell() {
+  app.innerHTML = `
+  <div class="wrap" id="main">
+    <header>
+      <div class="hello"><div class="avatar" id="avatar"></div>
+        <div><h1 id="helloName"></h1><p id="subhead"></p></div></div>
+      <div class="clock"><div class="label">TIME</div><div class="time" id="clockTime"></div><div class="date" id="clockDate"></div>
+        <div class="themes"><button data-theme="blocks">⛏️ BLOCK WORLD</button><button data-theme="jump">🍄 JUMP WORLD</button><button data-theme="blueprint">📐 BLUEPRINT</button></div></div>
+    </header>
+    <div class="grid" id="grid"><div class="col" id="zone-left"></div><div class="col" id="zone-right"></div></div>
+    <div class="zoneWide" id="zone-wide"></div>
+    <div class="stash" id="zone-hidden">
+      <section class="card verse" data-w="verse"><h2>📖 Verse of the Week</h2><blockquote id="verseText"></blockquote><div class="ref" id="verseRef"></div></section>
+      <section class="card" data-w="tasks"><h2>✅ Today's Tasks <span class="count" id="taskCount"></span></h2><div id="tasks"></div></section>
+      <section class="card" data-w="events"><h2>📅 Happening Today</h2><div id="events"></div></section>
+      <section class="card" data-w="reminders" id="remindersCard"><h2>📌 Reminders</h2><div class="notes" id="reminders"></div></section>
+      <section class="card timer" data-w="timer" id="timer"></section>
+      <section class="card doodle" data-w="doodle" id="doodle"></section>
+      <section class="card" data-w="week"><h2>🗓️ This Week</h2><div class="week" id="week"></div></section>
+    </div>
+    <div class="switch">Not you? <a href="#" id="switchKid">Switch kid</a></div>
+  </div>`;
+  document.getElementById("switchKid").onclick = (e) => {
+    e.preventDefault(); kidId = null; safeSet("kid", ""); history.replaceState(null, "", location.pathname); render();
+  };
+  document.querySelectorAll(".themes button").forEach((b) => b.onclick = () => { safeSet("theme-" + kidId, b.dataset.theme); applyTheme(); });
+  tickClock();
+  Timer.mount(document.getElementById("timer"));
+  Doodle.mount(document.getElementById("doodle"));
+}
+
+// Moves each widget box into the area the parent picked. Moving (not rebuilding) keeps the timer and drawing intact.
+let placedLayout = "";
+function placeWidgets() {
+  const layout = normalizeLayout(data.settings.layout);
+  const sig = JSON.stringify(layout);
+  if (sig === placedLayout) return;
+  placedLayout = sig;
+  for (const z of ZONES_ORDER) {
+    const zone = document.getElementById("zone-" + z);
+    for (const w of layout[z]) zone.appendChild(document.querySelector(`[data-w="${w}"]`));
+  }
+  const grid = document.getElementById("grid");
+  grid.classList.toggle("one", !layout.left.length || !layout.right.length);
+  grid.style.display = layout.left.length || layout.right.length ? "" : "none";
+}
+
+function renderVerse() {
+  const v = verseOfWeek(data.verses);
+  document.getElementById("verseText").textContent = v ? v.text : "Add verses to 52.bible.verses.txt to show one here each week.";
+  document.getElementById("verseRef").textContent = v ? `— ${v.ref}` : "";
+}
+
+function itemsOn(date, type) {
+  return data.items.filter((i) => i.type === type && happensOn(i, date, kidId)).sort(byTime);
+}
+
+function renderToday() {
+  const today = new Date();
+  const key = ymd(today);
+  const tasks = itemsOn(today, "task");
+  const doneCount = tasks.filter((t) => data.done[`${key}|${t.id}|${kidId}`]).length;
+
+  document.getElementById("taskCount").textContent = tasks.length ? `${doneCount} of ${tasks.length} done` : "";
+  document.getElementById("tasks").innerHTML = tasks.length ? `
+    <div class="xp"><span>${doneCount}</span><div style="width:${(doneCount / tasks.length) * 100}%"></div></div>
+    ${tasks.map((t) => {
+      const done = data.done[`${key}|${t.id}|${kidId}`];
+      return `<div class="task ${done ? "done" : ""}" data-id="${esc(t.id)}">
+        <div class="box">${done ? "★" : ""}</div>
+        <div><div class="t">${esc(t.title)}</div>${t.time || t.note ? `<div class="n">${linkify([fmtTime(t.time), t.note].filter(Boolean).join(" · "))}</div>` : ""}</div>
+      </div>`;
+    }).join("")}
+    ${doneCount === tasks.length ? `<div class="allDone">★ LEVEL COMPLETE! ★<br>All tasks done today!</div>` : ""}`
+    : `<div class="empty">No tasks today. Enjoy! 🌈</div>`;
+  document.querySelectorAll(".task").forEach((el) => el.onclick = (e) => { if (!e.target.closest("a")) toggleTask(el.dataset.id); });
+
+  const sub = tasks.length - doneCount;
+  document.getElementById("subhead").textContent = sub ? `You have ${sub} task${sub === 1 ? "" : "s"} left today.` : tasks.length ? "Everything's checked off!" : "";
+
+  const events = itemsOn(today, "event");
+  document.getElementById("events").innerHTML = events.length ? events.map((e) => `
+    <div class="event"><div class="when">${e.time ? fmtTime(e.time) : "Today"}</div>
+      <div><div class="t">${esc(e.title)}</div>${e.note ? `<div class="n">${linkify(e.note)}</div>` : ""}</div></div>`).join("")
+    : `<div class="empty">Nothing special today.</div>`;
+
+  const reminders = itemsOn(today, "reminder");
+  document.getElementById("remindersCard").style.display = reminders.length ? "" : "none";
+  document.getElementById("reminders").innerHTML = reminders.map((r) => `
+    <div class="note">${esc(r.title)}${r.note || r.time ? `<div class="n">${linkify([fmtTime(r.time), r.note].filter(Boolean).join(" · "))}</div>` : ""}</div>`).join("");
+}
+
+async function toggleTask(id) {
+  const k = `${ymd(new Date())}|${id}|${kidId}`;
+  const done = !data.done[k];
+  if (done) { data.done[k] = true; coin(); } else delete data.done[k];
+  renderToday();
+  renderWeek();
+  try { await api("/api/done", { date: ymd(new Date()), item: id, kid: kidId, done }); } catch { refresh(); }
+}
+
+// Tiles used to be reorderable; clear any order a kid's computer saved back then.
+try { Object.keys(localStorage).filter((k) => k.startsWith("weekorder-")).forEach((k) => localStorage.removeItem(k)); } catch {}
+
+function renderWeek() {
+  const start = new Date();
+  let html = "";
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(start, i), key = ymd(d);
+    // Everyday items would repeat in every column, so the week view leaves them out.
+    const items = data.items
+      .filter((it) => it.when?.kind !== "daily" && happensOn(it, d, kidId))
+      .sort((a, b) => (a.type === "event" ? 0 : 1) - (b.type === "event" ? 0 : 1) || byTime(a, b));
+    html += `<div class="day ${i === 0 ? "today" : ""}">
+      <h3>${i === 0 ? "Today" : i === 1 ? "Tomorrow" : DAY_NAMES[d.getDay()]}<small>${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</small></h3>
+      ${items.map((it) => `<div class="chip ${it.type} ${it.type === "task" && data.done[`${key}|${it.id}|${kidId}`] ? "done" : ""}">${esc(it.title)}${it.time ? `<small>${fmtTime(it.time)}</small>` : ""}</div>`).join("")}
+    </div>`;
+  }
+  document.getElementById("week").innerHTML = html;
+}
+
+/* ---------- Clock ---------- */
+function tickClock() {
+  const now = new Date();
+  const t = document.getElementById("clockTime");
+  if (t) {
+    const h = ((now.getHours() + 11) % 12) + 1;
+    t.innerHTML = `${h}:${String(now.getMinutes()).padStart(2, "0")}<small>${now.getHours() >= 12 ? "PM" : "AM"}</small>`;
+    document.getElementById("clockDate").textContent = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  }
+  if (ymd(now) !== lastDate) { lastDate = ymd(now); refresh(); }
+}
+setInterval(tickClock, 1000);
+
+/* ---------- Visual timer ---------- */
+// Each 10 minutes of remaining time gets its own color, so kids can see "I'm in the yellow".
+const ZONES = [
+  { color: "#ef4444", name: "red" },     // 0-10 min left
+  { color: "#f97316", name: "orange" },  // 10-20
+  { color: "#eab308", name: "yellow" },  // 20-30
+  { color: "#22c55e", name: "green" },   // 30-40
+  { color: "#3b82f6", name: "blue" },    // 40-50
+  { color: "#a855f7", name: "purple" },  // 50-60
+];
+const PRESETS = [15, 25, 30, 45];
+
+const Timer = {
+  el: null,
+  state: null, // { total (sec), endAt (ms) | null, left (sec, when paused) }
+
+  key() { return "timer-" + kidId; },
+  load() {
+    try { this.state = JSON.parse(localStorage.getItem(this.key())); } catch {}
+    if (!this.state) this.state = { total: 25 * 60, endAt: null, left: 25 * 60 };
+  },
+  save() { safeSet(this.key(), JSON.stringify(this.state)); },
+
+  remaining() {
+    const s = this.state;
+    return s.endAt ? Math.max(0, (s.endAt - Date.now()) / 1000) : s.left;
+  },
+
+  mount(el) {
+    this.el = el;
+    this.load();
+    el.innerHTML = `
+      <h2>⏱️ Timer <button class="btn small" id="bigBtn" style="margin-left:auto">⛶ Big</button></h2>
+      <svg viewBox="-160 -160 320 320" aria-label="Visual timer">
+        <circle r="152" fill="#fff" stroke="#000" stroke-width="5"/>
+        <g id="ring"></g>
+        <circle r="106" fill="#f0f0f0" stroke="#000" stroke-width="3"/>
+        <g id="wedges"></g>
+        <g id="ticks"></g>
+        <rect x="-16" y="-16" width="32" height="32" fill="#7d7d7d" stroke="#000" stroke-width="4"/><rect x="-6" y="-6" width="12" height="12" fill="#fff"/>
+      </svg>
+      <div class="readout" id="readout"></div>
+      <div class="zone" id="zone"></div>
+      <div class="presets">${PRESETS.map((m) => `<button class="btn gold preset" data-m="${m}">${m}</button>`).join("")}</div>
+      <div class="controls">
+        <button class="btn green go" id="goBtn">▶ START</button>
+        <button class="btn" id="resetBtn">↺ RESET</button>
+      </div>`;
+
+    // Clock face: minute ticks and 5-minute numbers, with a faint colored zone ring outside.
+    const ticks = el.querySelector("#ticks"), ring = el.querySelector("#ring");
+    let t = "", r = "";
+    for (let m = 0; m < 60; m++) {
+      const five = m % 5 === 0;
+      const [x1, y1] = pt(five ? 104 : 108, m), [x2, y2] = pt(118, m);
+      t += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#000" stroke-width="${five ? 4 : 1.5}"/>`;
+      if (five) { const [x, y] = pt(134, m); t += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="Press Start 2P, monospace" fill="#000">${m}</text>`; }
+    }
+    ZONES.forEach((z, i) => { r += `<path d="${arc(146, i * 10, i * 10 + 10)}" fill="none" stroke="${z.color}" stroke-width="8" opacity=".5"/>`; });
+    ticks.innerHTML = t; ring.innerHTML = r;
+
+    el.querySelectorAll(".preset").forEach((b) => b.onclick = () => this.set(+b.dataset.m));
+    el.querySelector("#goBtn").onclick = () => this.toggle();
+    el.querySelector("#resetBtn").onclick = () => this.set(this.state.total / 60);
+    el.querySelector("#bigBtn").onclick = () => {
+      el.classList.toggle("big");
+      el.querySelector("#bigBtn").textContent = el.classList.contains("big") ? "✕ Close" : "⛶ Big";
+    };
+    this.draw();
+    setInterval(() => this.draw(), 250);
+  },
+
+  set(min) {
+    this.state = { total: min * 60, endAt: null, left: min * 60 };
+    this.finishedShown = false;
+    this.save(); this.draw();
+  },
+
+  toggle() {
+    const s = this.state;
+    unlockAudio();
+    if (s.endAt) { s.left = this.remaining(); s.endAt = null; }
+    else {
+      if (s.left <= 0) s.left = s.total;
+      s.endAt = Date.now() + s.left * 1000;
+      this.finishedShown = false;
+    }
+    this.save(); this.draw();
+  },
+
+  draw() {
+    if (!this.el) return;
+    const s = this.state, left = this.remaining(), mins = left / 60;
+    const running = !!s.endAt && left > 0;
+
+    let w = "";
+    for (let i = 0; i < ZONES.length; i++) {
+      const a = i * 10, b = Math.min(i * 10 + 10, mins);
+      if (b > a) w += `<path d="${wedge(104, a, b)}" fill="${ZONES[i].color}"/>`;
+    }
+    this.el.querySelector("#wedges").innerHTML = w;
+
+    const secs = Math.ceil(left);
+    this.el.querySelector("#readout").textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
+    const zone = ZONES[Math.min(5, Math.floor(Math.max(0, mins - 0.0001) / 10))];
+    const zoneEl = this.el.querySelector("#zone");
+    if (left <= 0 && s.endAt) zoneEl.textContent = "⏰ TIME'S UP!";
+    else if (running) { zoneEl.textContent = `${zone.name.toUpperCase()} ZONE`; zoneEl.style.color = zone.color; }
+    else { zoneEl.textContent = left < s.total ? "PAUSED" : "READY?"; zoneEl.style.color = ""; }
+
+    const go = this.el.querySelector("#goBtn");
+    go.textContent = running ? "❚❚ PAUSE" : left < s.total && left > 0 ? "▶ GO ON" : "▶ START";
+    go.classList.toggle("green", !running); go.classList.toggle("red", running);
+    this.el.querySelectorAll(".preset").forEach((b) => b.classList.toggle("active", +b.dataset.m * 60 === s.total));
+    this.el.classList.toggle("finished", left <= 0 && !!s.endAt);
+
+    if (left <= 0 && s.endAt && !this.finishedShown) { this.finishedShown = true; chime(); }
+  },
+};
+
+// Angle 0 is the top of the face; minutes go clockwise like a real visual timer.
+function pt(r, m) {
+  const a = (m / 60) * 2 * Math.PI;
+  return [+(r * Math.sin(a)).toFixed(2), +(-r * Math.cos(a)).toFixed(2)];
+}
+function arc(r, a, b) {
+  const [x1, y1] = pt(r, a), [x2, y2] = pt(r, b);
+  return `M${x1},${y1} A${r},${r} 0 ${b - a > 30 ? 1 : 0} 1 ${x2},${y2}`;
+}
+function wedge(r, a, b) { return `M0,0 L${arc(r, a, b).slice(1)} Z`; }
+
+/* ---------- Doodle pad ---------- */
+const PEN_COLORS = ["#000000", "#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#a855f7", "#ec4899", "#8b5a2b"];
+const STAMPS = ["⭐", "❤️", "💖", "😊", "😎", "🚗", "🚀", "🌸", "🌈", "💎", "🐶", "🐱", "🍕", "⚽"];
+const SIZES = [4, 10, 24];
+
+const Doodle = {
+  color: "#000000", size: 10, mode: "pen", stamp: "⭐", hue: 0, undo: [],
+
+  key() { return "doodle-" + kidId; },
+
+  mount(el) {
+    el.innerHTML = `
+      <h2>🎨 Doodle Pad
+        <button class="btn small" id="dUndo" style="margin-left:auto">↶ UNDO</button>
+        <button class="btn small" id="dSave">💾 SAVE</button>
+        <button class="btn small red" id="dClear">🗑 CLEAR</button></h2>
+      <canvas width="900" height="560"></canvas>
+      <div class="dtools">
+        <div class="grp">${PEN_COLORS.map((c) => `<button class="sw" style="background:${c}" data-c="${c}" title="Color"></button>`).join("")}
+          <button class="sw rainbow" data-c="rainbow" title="Rainbow pen"></button></div>
+        <div class="grp">${SIZES.map((s) => `<button class="tool" data-size="${s}" title="Brush size"><span class="dot" style="width:${Math.min(s, 22)}px;height:${Math.min(s, 22)}px"></span></button>`).join("")}
+          <button class="tool" data-mode="eraser" title="Eraser">🧽</button></div>
+      </div>
+      <div class="dtools stamps"><div class="grp">${STAMPS.map((s) => `<button class="tool" data-stamp="${s}" title="Stamp">${s}</button>`).join("")}</div></div>`;
+    this.canvas = el.querySelector("canvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.blank();
+    try {
+      const saved = localStorage.getItem(this.key());
+      if (saved) { const img = new Image(); img.onload = () => this.ctx.drawImage(img, 0, 0); img.src = saved; }
+    } catch {}
+
+    el.querySelectorAll(".sw").forEach((b) => b.onclick = () => { this.mode = b.dataset.c === "rainbow" ? "rainbow" : "pen"; this.color = b.dataset.c; this.sync(); });
+    // Brush sizes also set how big stamps are.
+    el.querySelectorAll("[data-size]").forEach((b) => b.onclick = () => { this.size = +b.dataset.size; this.sync(); });
+    el.querySelector("[data-mode=eraser]").onclick = () => { this.mode = "eraser"; this.sync(); };
+    el.querySelectorAll("[data-stamp]").forEach((b) => b.onclick = () => { this.mode = "stamp"; this.stamp = b.dataset.stamp; this.sync(); });
+    el.querySelector("#dUndo").onclick = () => { const last = this.undo.pop(); if (last) { this.ctx.putImageData(last, 0, 0); this.store(); } };
+    el.querySelector("#dClear").onclick = () => { if (confirm("Clear your whole drawing?")) { this.snapshot(); this.blank(); this.store(); } };
+    el.querySelector("#dSave").onclick = () => {
+      const a = document.createElement("a");
+      a.href = this.canvas.toDataURL("image/png");
+      a.download = `doodle-${ymd(new Date())}.png`;
+      a.click();
+    };
+
+    const c = this.canvas;
+    let last = null;
+    const pos = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
+    c.onpointerdown = (e) => {
+      c.setPointerCapture(e.pointerId);
+      this.snapshot();
+      const p = pos(e);
+      if (this.mode === "stamp") { this.drawStamp(p); this.store(); return; }
+      last = p; this.line(p, p);
+    };
+    c.onpointermove = (e) => { if (!last) return; const p = pos(e); this.line(last, p); last = p; };
+    c.onpointerup = c.onpointercancel = () => { if (last) { last = null; this.store(); } };
+    this.sync();
+  },
+
+  sync() {
+    const el = this.canvas.closest(".doodle");
+    el.querySelectorAll(".sw").forEach((b) => b.classList.toggle("on", (this.mode === "pen" && b.dataset.c === this.color) || (this.mode === "rainbow" && b.dataset.c === "rainbow")));
+    el.querySelectorAll("[data-size]").forEach((b) => b.classList.toggle("on", +b.dataset.size === this.size));
+    el.querySelector("[data-mode=eraser]").classList.toggle("on", this.mode === "eraser");
+    el.querySelectorAll("[data-stamp]").forEach((b) => b.classList.toggle("on", this.mode === "stamp" && b.dataset.stamp === this.stamp));
+  },
+
+  line([x1, y1], [x2, y2]) {
+    const ctx = this.ctx;
+    ctx.lineCap = ctx.lineJoin = "round";
+    ctx.lineWidth = this.mode === "eraser" ? this.size * 2.5 : this.size;
+    if (this.mode === "rainbow") { this.hue = (this.hue + 4) % 360; ctx.strokeStyle = `hsl(${this.hue} 90% 55%)`; }
+    else ctx.strokeStyle = this.mode === "eraser" ? "#ffffff" : this.color;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 + 0.01, y2); ctx.stroke();
+  },
+
+  drawStamp([x, y]) {
+    const ctx = this.ctx;
+    ctx.font = `${this.size * 4 + 24}px "Segoe UI Emoji", "Apple Color Emoji", sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(this.stamp, x, y);
+  },
+
+  blank() { this.ctx.fillStyle = "#fff"; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); },
+  snapshot() { this.undo.push(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)); if (this.undo.length > 15) this.undo.shift(); },
+  store() { try { localStorage.setItem(this.key(), this.canvas.toDataURL("image/png")); } catch {} },
+};
+
+/* ---------- Sound ---------- */
+let audio;
+function unlockAudio() { try { audio = audio || new AudioContext(); audio.resume(); } catch {} }
+function chime() {
+  if (!audio) return;
+  const notes = [[523, 0, .12], [659, .12, .12], [784, .24, .12], [1046, .36, .12], [784, .5, .1], [1046, .62, .45]];
+  for (let rep = 0; rep < 2; rep++) notes.forEach(([f, t, d]) => beep(f, rep * 1.4 + t, d));
+}
+function coin() {
+  unlockAudio();
+  if (document.documentElement.dataset.theme === "jump") { beep(988, 0, .08); beep(1319, .08, .3); }
+  else { beep(392, 0, .05); beep(784, .05, .09); }
+}
+function beep(freq, t, dur) {
+  const o = audio.createOscillator(), g = audio.createGain(), at = audio.currentTime + t;
+  o.type = "square"; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.12, at);
+  g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  o.connect(g).connect(audio.destination);
+  o.start(at); o.stop(at + dur + .02);
+}
+
+refresh();
+setInterval(refresh, 30000); // pick up the parent's changes
+</script>
+</body>
+</html>

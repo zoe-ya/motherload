@@ -1,2 +1,61 @@
 # motherload
-Mothering 2027 edition
+
+Mothering 2027 edition: tools I build to make it easier organizing kids at home.
+
+## Projects
+
+| Project | What it is |
+|---|---|
+| [Kid Start Page](kid-start-page/) | A home page for my kids with daily tasks, a visual timer, a weekly Bible verse, and a parent page for me to update it all. Great to keep everyone organized after school, or homeschool. |
+
+---
+
+## Start Page
+
+A home page for my two school aged kids. One computer in the house runs it, and each kid's browser opens it as their home page over our home Wi‑Fi. Nothing goes on the internet.
+
+### What the kids see
+
+- **Big clock and date**, always on screen.
+- **Today's tasks** to check off. Each one turns into a gold coin or emerald block, with a sound and a progress bar. Finishing them all shows "LEVEL COMPLETE!"
+- **Visual timer** with 15, 25, 30 and 45 minute presets. The time left is a shrinking colored wedge, with a new color every 10 minutes (purple, blue, green, yellow, orange, red), so they can see how much time is left at a glance. A **Big** button fills the screen with it.
+- **Verse of the Week** from a list of 52 verses, one for each week of the year.
+- **Happening Today** and **Reminders**. Links added to these become buttons that open in a new tab.
+- **This Week**: the next 7 days, including weekly things like soccer and piano practice. Finished tasks get crossed off.
+- **Doodle Pad** with colors, a rainbow pen, emoji stamps, an eraser, undo, and saving the drawing as a picture.
+- **Three looks** each kid can switch between: ⛏️ **Block World** (stone, grass and dirt), 🍄 **Jump World** (bricks, hills, flowers and buzzing bees) and 📐 **Blueprint** (hand-drawn blue ink on grey graph paper, for older kids).
+
+### What the parent gets
+
+- Add **tasks, reminders and events** for one kid or both, for one day, certain days every week, or every day.
+- **Rearrange the page** by dragging widgets between the left column, right column, full width, or hidden.
+- See **today's progress** for each kid.
+- Set names, emoji and favorite colors, plus a **PIN** so the kids can't edit.
+
+### Running it
+
+You need [Python 3](https://www.python.org/downloads/). No other installs are needed.
+
+```
+cd kid-start-page
+python server.py
+```
+
+On Windows you can double-click `Kid Start Page.bat` instead. Then open:
+
+- Kid page: `http://<your-computer-name>:8080/?kid=1` (or `?kid=2`)
+- Parent page: `http://<your-computer-name>:8080/parent`
+
+The first run creates `data.json` with some starter items. That file holds your PIN and your kids' info, so it's left out of git.
+
+### Weekly verses
+
+`kid-start-page/52.bible.verses.txt` has one verse per line, written as `verse text — Reference`. Week 1 of the year shows line 1, week 2 shows line 2, and so on. Swap in your own verses any time.
+
+Scripture quotations taken from The Holy Bible, New International Version® NIV®. Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission. All rights reserved worldwide.
+
+### How it's built
+
+- `server.py` is a small Python web server that saves to `data.json`.
+- `web/index.html` is the kid page, `web/parent.html` is the parent page, and `web/common.js` is shared code.
+- `web/theme.css` and `web/themes.css` hold the two looks.

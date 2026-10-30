@@ -1,0 +1,208 @@
+/* Two looks the kids can switch between: "blocks" (block-building world) and "jump" (platform-jumping world). */
+
+/* ---------- Theme switch (both themes) ---------- */
+.themes { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; }
+.themes button { font-family: var(--pixel); font-size: 9px; padding: 7px 9px; cursor: pointer; border: 3px solid #000; background: rgba(0,0,0,.35); color: #fff; text-shadow: none; }
+.themes button.on { background: #fff; color: #000; }
+@media (max-width: 900px) { .themes { justify-content: flex-start; } }
+.hills { display: none; }
+
+/* ---------- BLOCK WORLD: emerald check-offs, grass "today" ---------- */
+html[data-theme="blocks"] .task.done .box { background: #17c45a; box-shadow: inset 3px 3px 0 #7dffb0, inset -3px -3px 0 #0b6b2f; text-shadow: 2px 2px 0 #0b6b2f; }
+html[data-theme="blocks"] .day.today { background: var(--grass); box-shadow: inset 3px 3px 0 #8fd65c, inset -3px -3px 0 var(--grass-dark); }
+html[data-theme="blocks"] .day.today h3, html[data-theme="blocks"] .day.today h3 small { color: #fff; text-shadow: 2px 2px 0 #000; }
+
+/* ---------- JUMP WORLD ---------- */
+html[data-theme="jump"] {
+  --sky: #5c94fc; --sky-low: #5c94fc;
+  --body: "Nunito", "Segoe UI", sans-serif;
+  --brick: #c84c0c; --brick-dark: #7a2c04;
+  --pipe: #00a800; --pipe-dark: #005c00;
+}
+html[data-theme="jump"] body { font-weight: 800; font-size: 19px; }
+
+/* Puffy round clouds */
+html[data-theme="jump"] .cloud { border-radius: 30px; height: 30px; }
+html[data-theme="jump"] .cloud::before { border-radius: 50%; width: 46px; height: 46px; top: -26px; left: 14px; }
+html[data-theme="jump"] .cloud::after { border-radius: 50%; width: 36px; height: 36px; top: -18px; left: 48px; }
+
+/* Rolling green hills and a brick floor */
+html[data-theme="jump"] .hills { display: block; position: fixed; left: 0; right: 0; bottom: 70px; height: 170px; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 160px 150px at 12% 100%, #00a800 98%, transparent 100%),
+    radial-gradient(ellipse 110px 90px at 30% 100%, #4bd34b 98%, transparent 100%),
+    radial-gradient(ellipse 200px 170px at 78% 100%, #4bd34b 98%, transparent 100%),
+    radial-gradient(ellipse 120px 100px at 95% 100%, #00a800 98%, transparent 100%); }
+html[data-theme="jump"] .ground { height: 72px; background-color: var(--brick);
+  background-image:
+    repeating-linear-gradient(0deg, #000 0 3px, transparent 3px 24px),
+    repeating-linear-gradient(90deg, #000 0 3px, transparent 3px 48px),
+    linear-gradient(#ffb18a 0 4px, transparent 4px);
+  border-top: 4px solid #000; }
+
+/* Cream panels with chunky outlines */
+html[data-theme="jump"] .card { background: #fff8e7; border: 4px solid #000; border-radius: 16px; box-shadow: 0 6px 0 #000; }
+html[data-theme="jump"] .card h2 { color: var(--brick); }
+
+/* Red buttons, pipe-green go button, gold block presets */
+html[data-theme="jump"] .btn { background: #e52521; border-radius: 10px; box-shadow: inset 0 -4px 0 #8f0f0c; text-shadow: 2px 2px 0 #8f0f0c; }
+html[data-theme="jump"] .btn:hover { background: #ff3b36; }
+html[data-theme="jump"] .btn.gold { background: var(--gold); box-shadow: inset 0 -4px 0 var(--gold-dark); text-shadow: 2px 2px 0 var(--gold-dark); }
+html[data-theme="jump"] .btn.green { background: var(--pipe); box-shadow: inset 0 -4px 0 var(--pipe-dark); text-shadow: 2px 2px 0 var(--pipe-dark); }
+html[data-theme="jump"] .btn.red { background: #e52521; }
+html[data-theme="jump"] .btn.preset.active { background: #fff; color: var(--brick); text-shadow: none; box-shadow: inset 0 -4px 0 #bbb; }
+
+/* Tasks: white bubbles that turn into gold coins */
+html[data-theme="jump"] .task { border-radius: 12px; }
+html[data-theme="jump"] .box { background: #fff; border: 3px solid #000; border-radius: 10px; box-shadow: none; }
+html[data-theme="jump"] .task.done .box { background: var(--gold); border-radius: 50%; box-shadow: inset 0 -4px 0 var(--gold-dark); text-shadow: 2px 2px 0 var(--gold-dark); animation: coinflip .4s; }
+@keyframes coinflip { 0% { transform: translateY(0) scaleX(1); } 30% { transform: translateY(-16px) scaleX(.2); } 60% { transform: translateY(-8px) scaleX(1); } 100% { transform: none; } }
+html[data-theme="jump"] .task .t, html[data-theme="jump"] .event .t { font-size: 22px; }
+html[data-theme="jump"] .xp { border-radius: 99px; background: #fff; }
+html[data-theme="jump"] .xp > div { background: var(--gold); box-shadow: inset 0 -4px 0 var(--gold-dark); border-radius: 99px; }
+html[data-theme="jump"] .xp span { color: var(--gold); }
+html[data-theme="jump"] .allDone { background: var(--pipe); border-radius: 12px; }
+
+/* Events, reminders, week */
+html[data-theme="jump"] .event { border-bottom-color: #f0d9a8; }
+html[data-theme="jump"] .note { background: #fff; background-image: none; border-radius: 12px; border-top: 10px solid #e52521; color: #000; font-size: 20px; }
+html[data-theme="jump"] .note .n { color: #555; }
+html[data-theme="jump"] .day { background: #fff; border-radius: 12px; box-shadow: 0 4px 0 #000; }
+html[data-theme="jump"] .day.today { background: var(--gold); box-shadow: 0 4px 0 var(--gold-dark), 0 4px 0 3px #000; }
+html[data-theme="jump"] .chip { border-radius: 8px; font-size: 17px; }
+html[data-theme="jump"] .chip small { font-size: 15px; }
+html[data-theme="jump"] .day h3 small { font-size: 16px; }
+html[data-theme="jump"] .avatar { border-radius: 18px; }
+html[data-theme="jump"] .picker button { border-radius: 20px; }
+html[data-theme="jump"] .themes button { border-radius: 8px; }
+
+/* Bees buzzing across the sky and flowers along the ground (Jump World only) */
+.jumpdeco { display: none; }
+html[data-theme="jump"] .jumpdeco { display: block; }
+.bee { position: fixed; left: 0; pointer-events: none; animation: beefly linear infinite; }
+html { overflow-x: hidden; }
+.bee.small svg { width: 34px; height: 28px; }
+.bee .bob { animation: beebob 1.4s ease-in-out infinite alternate; }
+.bee .wing { transform-box: fill-box; transform-origin: bottom center; animation: flap .12s linear infinite alternate; }
+@keyframes beefly { from { transform: translateX(-80px); } to { transform: translateX(calc(100vw + 80px)); } }
+@keyframes beebob { from { transform: translateY(-14px) rotate(-4deg); } to { transform: translateY(14px) rotate(4deg); } }
+@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(.45); } }
+.flower { position: fixed; z-index: 0; pointer-events: none; bottom: 72px; transform-origin: bottom center; animation: sway 3s ease-in-out infinite alternate; }
+@keyframes sway { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+/* Bees fly in front of the boxes (they can't be clicked); a little flower grows out of the top of each box. */
+html[data-theme="jump"] .jumpdeco .bee { z-index: 3; }
+html[data-theme="jump"] .card { position: relative; }
+html[data-theme="jump"] .card::before {
+  content: ""; position: absolute; top: -27px; right: 26px; width: 22px; height: 30px; pointer-events: none;
+  transform-origin: bottom center; animation: sway 3s ease-in-out infinite alternate;
+  background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 30'%3E%3Cpath d='M11 13V30' stroke='%231f7a1f' stroke-width='3'/%3E%3Cpath d='M11 24Q4 21 3 16Q9 17 11 22Z' fill='%232fa52f' stroke='%23000' stroke-width='1'/%3E%3Cg fill='%23ff6fae' stroke='%23000' stroke-width='1.2'%3E%3Ccircle cx='11' cy='5' r='4'/%3E%3Ccircle cx='16' cy='9' r='4'/%3E%3Ccircle cx='13.5' cy='14' r='4'/%3E%3Ccircle cx='8.5' cy='14' r='4'/%3E%3Ccircle cx='6' cy='9' r='4'/%3E%3C/g%3E%3Ccircle cx='11' cy='10' r='3.2' fill='%23ffd21f' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E");
+}
+html[data-theme="jump"] .card:nth-child(even)::before { right: auto; left: 30px; filter: hue-rotate(150deg); animation-delay: -1.5s; }
+html[data-theme="jump"] .card:nth-child(3n)::before { filter: saturate(0) brightness(1.6) contrast(1.2); }
+
+/* ---------- BLUEPRINT: hand-drawn blue ink on grey graph paper ---------- */
+html[data-theme="blueprint"] {
+  --pixel: "Architects Daughter", "Comic Sans MS", cursive;
+  --body: "Patrick Hand", "Comic Sans MS", cursive;
+  --bp-ink: #1e40af;
+  --bp-dark: #1e3a8a;
+  --bp-sketch: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  background: #dfe3e8;
+}
+html[data-theme="blueprint"] body {
+  color: var(--bp-dark); font-size: 20px; padding-bottom: 30px;
+  background-color: #dfe3e8;
+  background-image:
+    linear-gradient(rgba(37, 99, 235, .16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, .16) 1px, transparent 1px),
+    linear-gradient(rgba(37, 99, 235, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, .07) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+}
+html[data-theme="blueprint"] .clouds, html[data-theme="blueprint"] .ground, html[data-theme="blueprint"] .hills { display: none; }
+
+/* Header */
+html[data-theme="blueprint"] .hello h1 { color: var(--bp-dark); text-shadow: none; font-size: 30px; }
+html[data-theme="blueprint"] .hello p { color: #334155; text-shadow: none; font-size: 22px; }
+html[data-theme="blueprint"] .avatar { border: 2px solid var(--bp-ink); border-radius: var(--bp-sketch); box-shadow: 2px 3px 0 rgba(30, 64, 175, .25); }
+html[data-theme="blueprint"] .clock { color: var(--bp-dark); text-shadow: none; }
+html[data-theme="blueprint"] .clock .time { font-size: 58px; }
+html[data-theme="blueprint"] .clock .label, html[data-theme="blueprint"] .clock .date { font-size: 16px; color: #2563eb; }
+html[data-theme="blueprint"] .themes button { background: transparent; color: var(--bp-ink); border: 2px solid var(--bp-ink); border-radius: var(--bp-sketch); font-size: 13px; }
+html[data-theme="blueprint"] .themes button.on { background: var(--bp-ink); color: #fff; }
+
+/* Sketched panels */
+html[data-theme="blueprint"] .card { background: rgba(248, 250, 252, .88); border: 2px solid var(--bp-ink); border-radius: var(--bp-sketch); box-shadow: 3px 4px 0 rgba(30, 64, 175, .2); }
+html[data-theme="blueprint"] .card h2 { color: var(--bp-ink); font-size: 20px; letter-spacing: 1px; padding-bottom: 6px; border-bottom: 2px dashed #93c5fd; }
+html[data-theme="blueprint"] .card h2 .count { font-size: 15px; color: #475569; }
+html[data-theme="blueprint"] .empty { color: #64748b; }
+
+/* Outline buttons, like pen on paper */
+html[data-theme="blueprint"] .btn { background: transparent; color: var(--bp-ink); text-shadow: none; border: 2px solid var(--bp-ink); border-radius: var(--bp-sketch); box-shadow: none; font-size: 16px; }
+html[data-theme="blueprint"] .btn:hover { background: rgba(37, 99, 235, .1); }
+html[data-theme="blueprint"] .btn.green { color: #15803d; border-color: #15803d; }
+html[data-theme="blueprint"] .btn.red { color: #b91c1c; border-color: #b91c1c; }
+html[data-theme="blueprint"] .btn.small { font-size: 13px; }
+html[data-theme="blueprint"] .btn.preset.active { background: var(--bp-ink); color: #fff; }
+
+/* Tasks: hand-drawn boxes and a pencil-hatched progress bar */
+html[data-theme="blueprint"] .task .t, html[data-theme="blueprint"] .event .t { font-size: 24px; }
+html[data-theme="blueprint"] .task .n, html[data-theme="blueprint"] .event .n { color: #475569; font-size: 18px; }
+html[data-theme="blueprint"] .box { background: transparent; border: 2px solid var(--bp-ink); border-radius: 12px 3px 10px 4px; box-shadow: none; }
+html[data-theme="blueprint"] .task.done .box { background: #dbeafe; color: var(--bp-ink); text-shadow: none; box-shadow: none; }
+html[data-theme="blueprint"] .xp { background: transparent; border: 2px solid var(--bp-ink); border-radius: 10px 4px 12px 3px; }
+html[data-theme="blueprint"] .xp > div { background: repeating-linear-gradient(45deg, #2563eb 0 3px, transparent 3px 8px); box-shadow: none; }
+html[data-theme="blueprint"] .xp span { color: var(--bp-ink); text-shadow: none; }
+html[data-theme="blueprint"] .allDone { background: transparent; color: #15803d; border: 2px dashed #15803d; text-shadow: none; font-size: 18px; }
+html[data-theme="blueprint"] .event { border-bottom: 2px dashed #bfdbfe; }
+html[data-theme="blueprint"] .event .when { color: #2563eb; font-size: 16px; }
+
+/* Reminders: pinned sketch notes */
+html[data-theme="blueprint"] .note { background: #fff; background-image: none; border: 2px solid var(--bp-ink); border-radius: var(--bp-sketch); color: var(--bp-dark); font-size: 20px; transform: rotate(-1.2deg); }
+html[data-theme="blueprint"] .note:nth-child(even) { transform: rotate(1.2deg); }
+html[data-theme="blueprint"] .note .n { color: #475569; }
+
+/* Verse, links, week */
+html[data-theme="blueprint"] .verse blockquote { font-size: 24px; line-height: 1.3; color: var(--bp-dark); }
+html[data-theme="blueprint"] .verse .ref { font-size: 16px; }
+html[data-theme="blueprint"] a.link { background: transparent; color: #1d4ed8; border: 2px solid #1d4ed8; border-radius: 10px 3px 10px 3px; text-shadow: none; font-size: 14px; }
+html[data-theme="blueprint"] .day { background: rgba(255, 255, 255, .6); border: 2px solid var(--bp-ink); border-radius: var(--bp-sketch); box-shadow: none; }
+html[data-theme="blueprint"] .day.today { background: #dbeafe; border-width: 3px; box-shadow: none; }
+html[data-theme="blueprint"] .day h3 { font-size: 15px; color: var(--bp-dark); }
+html[data-theme="blueprint"] .day h3 small { color: #475569; font-size: 16px; }
+html[data-theme="blueprint"] .chip { border: 1.5px solid var(--bp-ink); border-left-width: 6px; border-radius: 3px 8px 4px 9px; font-size: 18px; }
+
+/* Timer drawn in blue ink */
+html[data-theme="blueprint"] .timer svg circle, html[data-theme="blueprint"] .timer svg line, html[data-theme="blueprint"] .timer svg rect { stroke: var(--bp-ink); }
+html[data-theme="blueprint"] .timer svg text { fill: var(--bp-ink); font-family: "Architects Daughter", cursive; font-size: 15px; }
+html[data-theme="blueprint"] .timer .readout { color: var(--bp-dark); font-size: 44px; }
+html[data-theme="blueprint"] .timer .zone { font-size: 16px; }
+
+/* Doodle pad and player select */
+html[data-theme="blueprint"] .doodle canvas { border: 2px solid var(--bp-ink); border-radius: 10px 4px 12px 3px; }
+html[data-theme="blueprint"] .sw, html[data-theme="blueprint"] .tool { border: 2px solid var(--bp-ink); border-radius: 8px 3px 9px 4px; }
+html[data-theme="blueprint"] .switch { color: #334155; text-shadow: none; }
+html[data-theme="blueprint"] .picker h1 { color: var(--bp-dark); text-shadow: none; }
+html[data-theme="blueprint"] .picker button { border: 2px solid var(--bp-ink); border-radius: var(--bp-sketch); text-shadow: none; }
+
+/* Hand-drawn math symbols floating on the graph paper (Blueprint only) */
+.mathdeco { display: none; }
+html[data-theme="blueprint"] .mathdeco { display: block; }
+.mathdeco span { position: fixed; z-index: 0; pointer-events: none; font-family: "Architects Daughter", cursive; color: rgba(30, 64, 175, .42);
+  transform: rotate(var(--r)); animation: mathfloat 6s ease-in-out infinite alternate; }
+@keyframes mathfloat { from { transform: rotate(var(--r)) translateY(-6px); } to { transform: rotate(calc(var(--r) + 6deg)) translateY(6px); } }
+
+/* Soft square hills and glowing lanterns (Block World only) */
+.blockdeco { display: none; }
+html[data-theme="blocks"] .blockdeco { display: block; }
+.blockhills { position: fixed; left: 0; right: 0; bottom: 72px; width: 100%; height: 260px; z-index: 0; pointer-events: none; opacity: .85; }
+.lamp { position: fixed; bottom: 72px; z-index: 0; pointer-events: none; animation: flicker 4s ease-in-out infinite; }
+.lamp:nth-of-type(even) { display: none; }
+@keyframes flicker { 0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 200, 80, .55)); } 50% { filter: drop-shadow(0 0 6px rgba(255, 200, 80, .7)); } }
+/* Just one lantern on the top box of each column. */
+html[data-theme="blocks"] .card { position: relative; }
+html[data-theme="blocks"] .col > .card:first-child::before {
+  content: ""; position: absolute; top: -33px; right: 26px; width: 24px; height: 36px; pointer-events: none;
+  animation: flicker 2.6s ease-in-out infinite;
+  background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 24' shape-rendering='crispEdges'%3E%3Crect x='7' y='0' width='2' height='3' fill='%233a3a3a'/%3E%3Crect x='4' y='3' width='8' height='2' fill='%233a3a3a'/%3E%3Crect x='3' y='5' width='10' height='13' fill='%233a3a3a'/%3E%3Crect x='5' y='7' width='6' height='9' fill='%23ffd36b'/%3E%3Crect x='6' y='8' width='4' height='6' fill='%23fff3c4'/%3E%3Crect x='4' y='18' width='8' height='3' fill='%233a3a3a'/%3E%3C/svg%3E");
+}

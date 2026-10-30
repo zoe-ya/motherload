@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parent Controls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 24px 40px; }
+  h1 { font-family: var(--pixel); font-size: 22px; line-height: 1.5; color: #fff; text-shadow: 4px 4px 0 #000; margin: 6px 0 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+  label.f { display: block; font-family: var(--pixel); font-size: 10px; color: #3f3f3f; margin: 14px 0 6px; }
+  .f + input, .f + select, .f + textarea { width: 100%; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg .btn.on, .days .btn.on { background: #e45c10; box-shadow: inset 3px 3px 0 #ffa36c, inset -3px -4px 0 #8a3200; text-shadow: 2px 2px 0 #8a3200; }
+  .days { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .days .btn:not(.on) { background: #5a5a5a; color: #cfcfcf; box-shadow: inset 3px 3px 0 #7a7a7a, inset -3px -4px 0 #333; }
+  .days .btn.on::before { content: "✓ "; }
+  .hint { font-size: 19px; color: #555; margin-top: 6px; }
+  .link { color: #1d4ed8; }
+  /* Layout editor */
+  .zones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .zone { background: #8b8b8b; border: 3px solid #000; padding: 8px; min-height: 90px; box-shadow: inset 3px 3px 0 #373737, inset -3px -3px 0 #fff; }
+  .zone.wide, .zone.hidden { grid-column: 1 / -1; }
+  .zone h4 { margin: 0 0 6px; font-family: var(--pixel); font-size: 9px; color: #fff; text-shadow: 1px 1px 0 #000; }
+  .zone.over { background: #6f86c9; }
+  .tile { display: flex; align-items: center; gap: 4px; background: #fff; border: 3px solid #000; padding: 4px 6px; margin-bottom: 6px; cursor: grab; font-size: 21px; }
+  .tile span { flex: 1; }
+  .tile.dragging { opacity: .4; }
+  .tile button { font-family: var(--pixel); font-size: 9px; padding: 4px 6px; border: 2px solid #000; background: #ddd; cursor: pointer; }
+  .zone.hidden .tile { opacity: .6; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .actions { display: flex; gap: 10px; margin-top: 18px; }
+  .list h3 { font-family: var(--pixel); font-size: 11px; margin: 18px 0 8px; color: #3f3f3f; }
+  .list h3:first-child { margin-top: 0; }
+  .item { display: flex; gap: 10px; align-items: center; background: #fff; border: 3px solid #000; padding: 8px 10px; margin-bottom: 8px; }
+  .item .main { flex: 1; min-width: 0; }
+  .item .t { font-size: 26px; line-height: 1; }
+  .item .m { font-size: 19px; color: #555; }
+  .tag { font-family: var(--pixel); font-size: 8px; padding: 3px 5px; color: #fff; border: 2px solid #000; vertical-align: middle; }
+  .kid { border: 3px solid #000; background: #fff; padding: 10px; margin-bottom: 10px; }
+  .kid .row input[type=text] { flex: 1; min-width: 120px; }
+  .kid input[type=color] { width: 54px; height: 42px; padding: 2px; }
+  .emoji { width: 70px; text-align: center; }
+  .status div { font-size: 22px; }
+  .links code { display: block; background: #000; color: var(--xp); padding: 8px 10px; font-size: 22px; margin: 4px 0 10px; word-break: break-all; }
+  .toast { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); background: #000; color: var(--xp); font-family: var(--pixel); font-size: 12px; padding: 14px 18px; border: 3px solid #fff; z-index: 10; display: none; }
+  .gate { max-width: 420px; margin: 12vh auto 0; text-align: center; }
+  .gate input { width: 100%; text-align: center; font-size: 32px; letter-spacing: 8px; margin: 10px 0 14px; }
+  .err { color: #d83a2b; font-size: 22px; min-height: 26px; }
+</style>
+</head>
+<body>
+<div class="ground"></div>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script src="common.js"></script>
+<script>
+const app = document.getElementById("app");
+let data = null;
+let pin = sessionStorage.getItem("pin") || "";
+let editingId = null;
+let layout = null; // layout being edited, saved with SAVE LAYOUT
+let form = blankForm();
+
+function blankForm() {
+  return { type: "task", title: "", who: "all", when: { kind: "date", date: ymd(new Date()), days: [] }, time: "", note: "" };
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.style.display = "block";
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = "none", 1800);
+}
+
+async function start() {
+  data = await api("/api/data");
+  if (data.settings.hasPin && !pin) return renderGate();
+  if (data.settings.hasPin) {
+    try { await api("/api/login", { pin }); } catch { pin = ""; return renderGate(); }
+  }
+  render();
+}
+
+function renderGate(err = "") {
+  app.innerHTML = `<div class="card gate"><h2 style="justify-content:center">🔒 Parent PIN</h2>
+    <input type="password" id="pinIn" inputmode="numeric" autofocus>
+    <div class="err">${esc(err)}</div>
+    <button class="btn green" id="pinGo">ENTER</button></div>`;
+  const go = async () => {
+    const p = document.getElementById("pinIn").value;
+    try { await api("/api/login", { pin: p }); pin = p; sessionStorage.setItem("pin", p); render(); }
+    catch { renderGate("Wrong PIN"); }
+  };
+  document.getElementById("pinGo").onclick = go;
+  document.getElementById("pinIn").onkeydown = (e) => e.key === "Enter" && go();
+}
+
+async function save(extra = {}) {
+  try {
+    data = await api("/api/save", { pin, data: { items: data.items, kids: data.settings.kids, layout: data.settings.layout || DEFAULT_LAYOUT }, ...extra });
+    layout = null;
+    toast("SAVED!");
+  } catch (e) { toast(e.message); }
+  render();
+}
+
+function kidName(id) {
+  return id === "all" ? "Everyone" : (data.settings.kids.find((s) => s.id === id)?.name || "?");
+}
+
+/* ---------- Main page ---------- */
+function render() {
+  const s = data.settings.kids;
+  app.innerHTML = `
+    <h1>🛠️ Parent Controls</h1>
+    <div class="grid">
+      <div class="col">
+        <section class="card" id="formCard"></section>
+        <section class="card status"><h2>📊 Today's Progress</h2><div id="status"></div></section>
+      </div>
+      <div class="col">
+        <section class="card list"><h2>📋 Everything Scheduled</h2><div id="list"></div></section>
+        <section class="card"><h2>🧩 Page Layout</h2>
+          <div class="hint" style="margin:-6px 0 10px">Drag the boxes to move them, or use the arrows. Put a box in "Hidden" to remove it from the kids' page.</div>
+          <div class="zones" id="zones"></div>
+          <div class="actions"><button class="btn green" id="saveLayout">SAVE LAYOUT</button><button class="btn" id="resetLayout">RESET</button></div></section>
+        <section class="card"><h2>🎮 Players</h2><div id="kids"></div>
+          <button class="btn green" id="saveKids">SAVE PLAYERS</button></section>
+        <section class="card links"><h2>🖥️ Kids' Computers</h2>
+          ${s.map((k) => `<div>${esc(k.emoji)} ${esc(k.name)}'s home page:</div><code>${location.origin}/?kid=${esc(k.id)}</code>`).join("")}
+          <div style="font-size:19px;color:#555">Set each one as that computer's browser home page and startup page.</div></section>
+        <section class="card"><h2>🔒 Parent PIN</h2>
+          <div style="font-size:20px;margin-bottom:8px">${data.settings.hasPin ? "A PIN is set. Enter a new one to change it, or leave it blank to remove it." : "No PIN yet. Set one so the kids can't change things here."}</div>
+          <div class="row"><input type="password" id="newPin" placeholder="New PIN" style="flex:1"><button class="btn" id="setPin">SET PIN</button></div></section>
+      </div>
+    </div>`;
+  renderForm(); renderList(); renderStatus(); renderKids(); renderLayout();
+
+  document.getElementById("saveKids").onclick = () => {
+    document.querySelectorAll(".kid").forEach((el) => {
+      const k = data.settings.kids.find((x) => x.id === el.dataset.id);
+      k.name = el.querySelector(".nm").value.trim() || k.name;
+      k.emoji = el.querySelector(".emoji").value.trim() || k.emoji;
+      k.color = el.querySelector("input[type=color]").value;
+    });
+    save();
+  };
+  document.getElementById("saveLayout").onclick = () => { data.settings.layout = layout; save(); };
+  document.getElementById("resetLayout").onclick = () => { layout = normalizeLayout(DEFAULT_LAYOUT); renderLayout(); };
+  document.getElementById("setPin").onclick = async () => {
+    const p = document.getElementById("newPin").value.trim();
+    await save({ newPin: p });
+    pin = p; sessionStorage.setItem("pin", p);
+  };
+}
+
+function renderForm() {
+  const f = form, s = data.settings.kids;
+  const seg = (name, opts, cur) => `<div class="seg">${opts.map(([v, l]) => `<button class="btn small ${cur === v ? "on" : ""}" data-${name}="${v}">${l}</button>`).join("")}</div>`;
+  document.getElementById("formCard").innerHTML = `
+    <h2>${editingId ? "✏️ Edit" : "➕ Add Something"}</h2>
+    <label class="f">WHAT KIND?</label>
+    ${seg("type", [["task", "✅ TASK"], ["reminder", "📌 REMINDER"], ["event", "📅 EVENT"]], f.type)}
+    <label class="f">TITLE</label>
+    <input id="title" value="${esc(f.title)}" placeholder="${f.type === "event" ? "e.g. Soccer game" : f.type === "task" ? "e.g. Spelling worksheet" : "e.g. Library books due"}">
+    <label class="f">FOR WHO?</label>
+    ${seg("who", [["all", "EVERYONE"], ...s.map((k) => [k.id, esc(k.name).toUpperCase()])], f.who)}
+    <label class="f">WHEN?</label>
+    ${seg("kind", [["date", "ONE DAY"], ["weekly", "EVERY WEEK"], ["daily", "EVERY DAY"]], f.when.kind)}
+    <div style="margin-top:8px">
+      ${f.when.kind === "date" ? `<input type="date" id="date" value="${esc(f.when.date)}">` : ""}
+      ${f.when.kind === "weekly" ? `<div class="days">${DAY_SHORT.map((d, i) => `<button class="btn small ${f.when.days.includes(i) ? "on" : ""}" data-day="${i}">${d.toUpperCase()}</button>`).join("")}</div>` : ""}
+    </div>
+    <label class="f">TIME (OPTIONAL)</label>
+    <input type="time" id="time" value="${esc(f.time)}" style="width:auto">
+    <label class="f">NOTE OR LINK (OPTIONAL)</label>
+    <input id="note" value="${esc(f.note)}" placeholder="e.g. Bring your belt, or paste a website address">
+    <div class="hint">Website addresses (starting with http) become buttons that open in a new tab.</div>
+    <div class="err" id="formErr"></div>
+    <div class="actions">
+      <button class="btn green" id="submit">${editingId ? "SAVE CHANGES" : "ADD IT!"}</button>
+      ${editingId ? `<button class="btn" id="cancel">CANCEL</button>` : ""}
+    </div>`;
+
+  const card = document.getElementById("formCard");
+  const keep = () => {
+    form.title = card.querySelector("#title").value;
+    form.time = card.querySelector("#time").value;
+    form.note = card.querySelector("#note").value;
+    const d = card.querySelector("#date"); if (d) form.when.date = d.value;
+  };
+  card.querySelectorAll("[data-type]").forEach((b) => b.onclick = () => { keep(); form.type = b.dataset.type; renderForm(); });
+  card.querySelectorAll("[data-who]").forEach((b) => b.onclick = () => { keep(); form.who = b.dataset.who; renderForm(); });
+  card.querySelectorAll("[data-kind]").forEach((b) => b.onclick = () => { keep(); form.when.kind = b.dataset.kind; renderForm(); });
+  card.querySelectorAll("[data-day]").forEach((b) => b.onclick = () => {
+    keep(); const d = +b.dataset.day, days = form.when.days;
+    form.when.days = days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort();
+    renderForm();
+  });
+  card.querySelector("#submit").onclick = () => {
+    keep();
+    const err = !form.title.trim() ? "Give it a title."
+      : form.when.kind === "weekly" && !form.when.days.length ? "Pick at least one day."
+      : form.when.kind === "date" && !form.when.date ? "Pick a date." : "";
+    if (err) return document.getElementById("formErr").textContent = err;
+
+    const when = form.when.kind === "date" ? { kind: "date", date: form.when.date }
+      : form.when.kind === "weekly" ? { kind: "weekly", days: form.when.days } : { kind: "daily" };
+    const item = { id: editingId || Date.now().toString(36), type: form.type, title: form.title.trim(), who: form.who, when, time: form.time, note: form.note.trim() };
+    data.items = editingId ? data.items.map((i) => i.id === editingId ? item : i) : [...data.items, item];
+    editingId = null; form = blankForm();
+    save();
+  };
+  const cancel = card.querySelector("#cancel");
+  if (cancel) cancel.onclick = () => { editingId = null; form = blankForm(); renderForm(); };
+}
+
+function renderList() {
+  const today = ymd(new Date());
+  // One-day items in the past are kept out of the way.
+  const live = data.items.filter((i) => i.when.kind !== "date" || i.when.date >= today);
+  const old = data.items.length - live.length;
+  const groups = [["event", "📅 EVENTS"], ["task", "✅ TASKS"], ["reminder", "📌 REMINDERS"]];
+  const whoTag = (id) => {
+    const k = data.settings.kids.find((s) => s.id === id);
+    return `<span class="tag" style="background:${k ? esc(k.color) : "#555"}">${esc(kidName(id)).toUpperCase()}</span>`;
+  };
+  document.getElementById("list").innerHTML = groups.map(([type, label]) => {
+    const items = live.filter((i) => i.type === type)
+      .sort((a, b) => (a.when.date || "").localeCompare(b.when.date || "") || byTime(a, b));
+    return `<h3>${label}</h3>` + (items.length ? items.map((i) => `
+      <div class="item"><div class="main"><div class="t">${esc(i.title)} ${whoTag(i.who)}</div>
+        <div class="m">${describeWhen(i)}${i.time ? " · " + fmtTime(i.time) : ""}${i.note ? " · " + linkify(i.note) : ""}</div></div>
+        <button class="btn small" data-edit="${esc(i.id)}">EDIT</button>
+        <button class="btn small red" data-del="${esc(i.id)}">✕</button></div>`).join("")
+      : `<div style="color:#555">Nothing yet.</div>`);
+  }).join("") + (old ? `<div style="margin-top:14px;font-size:19px;color:#555">${old} past one-day item${old === 1 ? "" : "s"} hidden. <a href="#" id="clearOld">Clear them out</a></div>` : "");
+
+  document.querySelectorAll("[data-edit]").forEach((b) => b.onclick = () => {
+    const i = data.items.find((x) => x.id === b.dataset.edit);
+    editingId = i.id;
+    form = { ...JSON.parse(JSON.stringify(i)), when: { date: ymd(new Date()), days: [], ...i.when } };
+    renderForm(); scrollTo({ top: 0, behavior: "smooth" });
+  });
+  document.querySelectorAll("[data-del]").forEach((b) => b.onclick = () => {
+    const i = data.items.find((x) => x.id === b.dataset.del);
+    if (confirm(`Remove "${i.title}"?`)) { data.items = data.items.filter((x) => x !== i); save(); }
+  });
+  const clr = document.getElementById("clearOld");
+  if (clr) clr.onclick = (e) => { e.preventDefault(); data.items = live; save(); };
+}
+
+function renderStatus() {
+  const now = new Date(), key = ymd(now);
+  const v = verseOfWeek(data.verses);
+  document.getElementById("status").innerHTML = (v ? `<div style="margin-bottom:14px;font-size:20px"><b>📖 Week ${v.week} verse:</b> ${esc(v.text)} <i>${esc(v.ref)}</i></div>` : "") + data.settings.kids.map((k) => {
+    const tasks = data.items.filter((i) => i.type === "task" && happensOn(i, now, k.id));
+    const done = tasks.filter((t) => data.done[`${key}|${t.id}|${k.id}`]);
+    return `<div style="margin-bottom:12px"><b>${esc(k.emoji)} ${esc(k.name)}: ${done.length} of ${tasks.length} done</b>
+      ${tasks.map((t) => `<div style="font-size:20px;color:${data.done[`${key}|${t.id}|${k.id}`] ? "#1f6b24" : "#555"}">${data.done[`${key}|${t.id}|${k.id}`] ? "★" : "☐"} ${esc(t.title)}</div>`).join("")}</div>`;
+  }).join("") + `<button class="btn small" id="refreshStatus">↻ REFRESH</button>`;
+  document.getElementById("refreshStatus").onclick = async () => { data = await api("/api/data"); renderStatus(); };
+}
+
+const ZONE_NAMES = { left: "LEFT COLUMN", right: "RIGHT COLUMN", wide: "FULL WIDTH (BOTTOM)", hidden: "HIDDEN" };
+
+function renderLayout() {
+  if (!layout) layout = normalizeLayout(data.settings.layout);
+  const box = document.getElementById("zones");
+  box.innerHTML = ZONES_ORDER.map((z) => `<div class="zone ${z}" data-zone="${z}"><h4>${ZONE_NAMES[z]}</h4>
+    ${layout[z].map((w) => `<div class="tile" draggable="true" data-w="${w}"><span>${WIDGETS[w]}</span>
+      <button data-move="up" title="Move up">▲</button><button data-move="down" title="Move down">▼</button>
+      <button data-move="prev" title="Move to previous area">◀</button><button data-move="next" title="Move to next area">▶</button></div>`).join("")}</div>`).join("");
+
+  const where = (w) => ZONES_ORDER.find((z) => layout[z].includes(w));
+  box.querySelectorAll(".tile button").forEach((b) => b.onclick = () => {
+    const w = b.closest(".tile").dataset.w, z = where(w), list = layout[z], i = list.indexOf(w);
+    if (b.dataset.move === "up" && i > 0) [list[i - 1], list[i]] = [list[i], list[i - 1]];
+    if (b.dataset.move === "down" && i < list.length - 1) [list[i + 1], list[i]] = [list[i], list[i + 1]];
+    if (b.dataset.move === "prev" || b.dataset.move === "next") {
+      const zi = ZONES_ORDER.indexOf(z) + (b.dataset.move === "next" ? 1 : -1);
+      if (zi >= 0 && zi < ZONES_ORDER.length) { list.splice(i, 1); layout[ZONES_ORDER[zi]].push(w); }
+    }
+    renderLayout();
+  });
+
+  // Drag and drop: drop a tile above whichever tile the mouse is over, or at the end of the area.
+  let dragged = null;
+  box.querySelectorAll(".tile").forEach((t) => {
+    t.ondragstart = (e) => { dragged = t.dataset.w; t.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; };
+    t.ondragend = () => t.classList.remove("dragging");
+  });
+  box.querySelectorAll(".zone").forEach((zEl) => {
+    zEl.ondragover = (e) => { e.preventDefault(); zEl.classList.add("over"); };
+    zEl.ondragleave = () => zEl.classList.remove("over");
+    zEl.ondrop = (e) => {
+      e.preventDefault(); zEl.classList.remove("over");
+      if (!dragged) return;
+      const before = [...zEl.querySelectorAll(".tile")].find((t) => t.dataset.w !== dragged && e.clientY < t.getBoundingClientRect().top + t.offsetHeight / 2);
+      layout[where(dragged)] = layout[where(dragged)].filter((w) => w !== dragged);
+      const list = layout[zEl.dataset.zone];
+      list.splice(before ? list.indexOf(before.dataset.w) : list.length, 0, dragged);
+      dragged = null; renderLayout();
+    };
+  });
+}
+
+function renderKids() {
+  document.getElementById("kids").innerHTML = data.settings.kids.map((k) => `
+    <div class="kid" data-id="${esc(k.id)}"><div class="row">
+      <input class="emoji" value="${esc(k.emoji)}" maxlength="4" title="Emoji">
+      <input type="text" class="nm" value="${esc(k.name)}" placeholder="Name">
+      <input type="color" value="${esc(k.color)}" title="Favorite color">
+    </div></div>`).join("");
+}
+
+start().catch(() => app.innerHTML = `<div class="card gate">Can't reach the server. Is it running?</div>`);
+</script>
+</body>
+</html>

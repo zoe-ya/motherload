@@ -1,0 +1,78 @@
+/* 8-bit block-world theme shared by the kid and parent pages. */
+:root {
+  --sky: #5c94fc;
+  --sky-low: #9cc4ff;
+  --ink: #1b1b1b;
+  --panel: #c6c6c6;
+  --panel-dark: #8b8b8b;
+  --hi: #ffffff;
+  --lo: #555555;
+  --gold: #f8b800;
+  --gold-dark: #b86f00;
+  --grass: #5fa832;
+  --grass-dark: #3d7a1c;
+  --dirt: #866043;
+  --dirt-dark: #5e412b;
+  --plank: #b8945f;
+  --plank-dark: #8a6a3e;
+  --xp: #80ff20;
+  --accent: #3b82f6;
+  --pixel: "Press Start 2P", monospace;
+  --body: "VT323", "Consolas", monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--sky); }
+body {
+  margin: 0; min-height: 100vh; color: var(--ink);
+  font-family: var(--body); font-size: 22px;
+  background: linear-gradient(var(--sky) 0 55%, var(--sky-low));
+  background-attachment: fixed;
+  padding-bottom: 90px;
+}
+
+/* Blocky clouds drifting behind everything */
+.clouds { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.cloud { position: absolute; width: 96px; height: 24px; background: #fff; animation: drift linear infinite; }
+.cloud::before, .cloud::after { content: ""; position: absolute; background: #fff; }
+.cloud::before { width: 48px; height: 24px; left: 16px; top: -24px; }
+.cloud::after { width: 24px; height: 16px; left: 56px; top: -16px; }
+@keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(calc(100vw + 140px)); } }
+
+/* Grass-on-dirt ground along the bottom */
+.ground { position: fixed; left: 0; right: 0; bottom: 0; height: 72px; z-index: 0; pointer-events: none;
+  background:
+    linear-gradient(var(--grass) 0 14px, var(--grass-dark) 14px 18px, transparent 18px),
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(0,0,0,.18) 22px 24px, transparent 24px 46px, rgba(255,255,255,.08) 46px 48px),
+    repeating-linear-gradient(0deg, var(--dirt) 0 12px, var(--dirt-dark) 12px 14px, var(--dirt) 14px 26px, #977052 26px 28px);
+  border-top: 4px solid #000; }
+
+.wrap { position: relative; z-index: 1; }
+
+/* Inventory-style panels */
+.card {
+  background: var(--panel); border: 4px solid #000; border-radius: 0;
+  box-shadow: inset 4px 4px 0 var(--hi), inset -4px -4px 0 var(--lo), 6px 6px 0 rgba(0,0,0,.25);
+  padding: 18px 20px;
+}
+.card h2 { font-family: var(--pixel); font-size: 15px; line-height: 1.4; margin: 0 0 16px; color: #3f3f3f; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+
+/* Stone buttons */
+.btn {
+  font-family: var(--pixel); font-size: 12px; color: #fff; text-shadow: 2px 2px 0 #3f3f3f;
+  background: #7d7d7d; border: 3px solid #000; border-radius: 0; padding: 12px 14px; cursor: pointer;
+  box-shadow: inset 3px 3px 0 #b5b5b5, inset -3px -4px 0 #4a4a4a;
+}
+.btn:hover { background: #7e8fc4; box-shadow: inset 3px 3px 0 #b9c6f0, inset -3px -4px 0 #4a5a8a; }
+.btn:active { transform: translateY(2px); }
+/* Gold "?"-style block buttons */
+.btn.gold { background: var(--gold); color: #fff; text-shadow: 2px 2px 0 var(--gold-dark); box-shadow: inset 3px 3px 0 #ffe08a, inset -3px -4px 0 var(--gold-dark); }
+.btn.gold:hover { background: #ffc828; }
+.btn.green { background: #3cb043; box-shadow: inset 3px 3px 0 #8ae68f, inset -3px -4px 0 #1f6b24; text-shadow: 2px 2px 0 #1f6b24; }
+.btn.red { background: #d83a2b; box-shadow: inset 3px 3px 0 #ff9a8e, inset -3px -4px 0 #7e1a12; text-shadow: 2px 2px 0 #7e1a12; }
+.btn.small { font-size: 10px; padding: 8px 10px; }
+
+input, select, textarea {
+  font-family: var(--body); font-size: 22px; color: #fff; background: #000; border: 3px solid #a0a0a0; border-radius: 0;
+  padding: 6px 10px; outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: #fff; }
