@@ -236,7 +236,7 @@ function buildShell() {
       <section class="card doodle" data-w="doodle" id="doodle"></section>
       <section class="card" data-w="week"><h2>🗓️ This Week</h2><div class="week" id="week"></div></section>
     </div>
-    <div class="switch">Not you? <a href="#" id="switchKid">Switch kid</a></div>
+    <div class="switch">Not you? <a href="#" id="switchKid">Switch kid</a> · <a href="parent.html">Parent page</a></div>
   </div>`;
   document.getElementById("switchKid").onclick = (e) => {
     e.preventDefault(); kidId = null; safeSet("kid", ""); history.replaceState(null, "", location.pathname); render();
