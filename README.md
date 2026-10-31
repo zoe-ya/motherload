@@ -34,19 +34,21 @@ A home page for my two school aged kids. One computer in the house runs it, and 
 - See **today's progress** for each kid.
 - Set names, emoji and favorite colors, plus a **PIN** so the kids can't edit.
 
-### Running it
+### Set it up for your family
 
-You need [Python 3](https://www.python.org/downloads/). No other installs are needed.
+0. **Have Grok or Claude do it for you.** Or DIY:
+1. **Install Python 3** from [python.org](https://www.python.org/downloads/). On Windows, check **"Add Python to PATH"** during install.
+2. **Download this project:** click the green **Code** button on GitHub, choose **Download ZIP**, and unzip it.
+3. **Start it** on the computer that will host it (it needs to stay on):
+   - Windows: open the `kid-start-page` folder and double-click `Kid Start Page.bat`. If Windows Firewall asks, allow **Private networks** only.
+   - Mac: open Terminal in the `kid-start-page` folder and run `python3 server.py`.
+4. **Set it up as the parent:** on that computer, go to `http://localhost:8080/parent`. Set a PIN, your kids' names and colors, and add their tasks.
+5. **Open it on each kid's device** (same Wi‑Fi): go to `http://<host-computer-address>:8080/?kid=1` (or `?kid=2`). The address is the host's **IPv4 Address**, found by running `ipconfig` (Windows) or in System Settings → Network (Mac). It usually starts with `192.168.`.
+   - On a laptop or desktop, make that link the browser's home page.
+   - On an iPad, open it in Safari, then **Share → Add to Home Screen**.
+6. **Optional, start automatically:** on Windows, press `Win + R`, type `shell:startup`, and put a shortcut to `Kid Start Page.bat` in that folder.
 
-```
-cd kid-start-page
-python server.py
-```
-
-On Windows you can double-click `Kid Start Page.bat` instead. Then open:
-
-- Kid page: `http://<your-computer-name>:8080/?kid=1` (or `?kid=2`)
-- Parent page: `http://<your-computer-name>:8080/parent`
+It only works on your home Wi‑Fi, and nothing is sent to the internet.
 
 The first run creates `data.json` with some starter items. That file holds your PIN and your kids' info, so it's left out of git.
 
