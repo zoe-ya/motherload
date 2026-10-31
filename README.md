@@ -6,11 +6,13 @@ Mothering 2027 edition: tools I build to make it easier organizing kids at home.
 
 | Project | What it is |
 |---|---|
-| [Kid Start Page](kid-start-page/) | A home page for my kids with daily tasks, a visual timer, a weekly Bible verse, and a parent page for me to update it all. Great to keep everyone organized after school, or homeschool. |
+| [Kid Start Page](kid-start-page/) | A home page for my kids with daily tasks, a visual timer, a weekly Bible verse, and a parent page for me to update it all. Great to keep everyone organized after school, or homeschool. **[Try the demo](https://zoe-ya.github.io/motherload/)** |
 
 ---
 
 ## Start Page
+
+👉 **[Try the live demo](https://zoe-ya.github.io/motherload/)**: no install needed. Anything you change is saved only in your own browser.
 
 A home page for my two school aged kids. One computer in the house runs it, and each kid's browser opens it as their home page over our home Wi‑Fi. Nothing goes on the internet.
 

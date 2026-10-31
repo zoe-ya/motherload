@@ -54,6 +54,7 @@ function esc(s) {
 }
 
 async function api(path, body) {
+  if (window.DEMO) return demoApi(path, body);
   const res = await fetch(path, body === undefined ? { cache: "no-store" } : {
     method: "POST",
     headers: { "Content-Type": "application/json" },

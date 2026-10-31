@@ -48,6 +48,11 @@ body {
 
 .wrap { position: relative; z-index: 1; }
 
+/* Demo strip shown only on the online demo */
+.demobar { position: relative; z-index: 5; background: #111; color: #fff; text-align: center; padding: 9px 16px; font-family: "Segoe UI", system-ui, sans-serif; font-size: 15px; line-height: 1.4; }
+.demobar b { background: #ffd21f; color: #111; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
+.demobar a { color: #ffd21f; }
+
 /* Inventory-style panels */
 .card {
   background: var(--panel); border: 4px solid #000; border-radius: 0;

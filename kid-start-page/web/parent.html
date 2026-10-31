@@ -60,6 +60,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="common.js"></script>
+<script src="demo.js"></script>
 <script>
 const app = document.getElementById("app");
 let data = null;
@@ -133,10 +134,10 @@ function render() {
         <section class="card"><h2>🎮 Players</h2><div id="kids"></div>
           <button class="btn green" id="saveKids">SAVE PLAYERS</button></section>
         <section class="card links"><h2>🖥️ Kids' Computers</h2>
-          ${s.map((k) => `<div>${esc(k.emoji)} ${esc(k.name)}'s home page:</div><code>${location.origin}/?kid=${esc(k.id)}</code>`).join("")}
+          ${s.map((k) => `<div>${esc(k.emoji)} ${esc(k.name)}'s home page:</div><code>${new URL("./?kid=" + k.id, location.href).href}</code>`).join("")}
           <div style="font-size:19px;color:#555">Set each one as that computer's browser home page and startup page.</div></section>
         <section class="card"><h2>🔒 Parent PIN</h2>
-          <div style="font-size:20px;margin-bottom:8px">${data.settings.hasPin ? "A PIN is set. Enter a new one to change it, or leave it blank to remove it." : "No PIN yet. Set one so the kids can't change things here."}</div>
+          <div style="font-size:20px;margin-bottom:8px">${window.DEMO ? "The PIN is turned off in the demo. At home, a PIN keeps the kids from changing things here." : data.settings.hasPin ? "A PIN is set. Enter a new one to change it, or leave it blank to remove it." : "No PIN yet. Set one so the kids can't change things here."}</div>
           <div class="row"><input type="password" id="newPin" placeholder="New PIN" style="flex:1"><button class="btn" id="setPin">SET PIN</button></div></section>
       </div>
     </div>`;
@@ -320,6 +321,7 @@ function renderKids() {
     </div></div>`).join("");
 }
 
+demoBanner(`<a href="./?kid=1">← Back to the kid page</a>`);
 start().catch(() => app.innerHTML = `<div class="card gate">Can't reach the server. Is it running?</div>`);
 </script>
 </body>

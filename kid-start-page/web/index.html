@@ -27,6 +27,17 @@
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
   .col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .clock { text-align: left; } }
+  /* Phones: smaller header so the page starts sooner */
+  @media (max-width: 600px) {
+    .wrap { padding: 14px 14px 24px; }
+    .avatar { width: 52px; height: 52px; font-size: 28px; }
+    .hello h1 { font-size: 16px; }
+    .hello p { font-size: 20px; }
+    .clock .time { font-size: 34px; }
+    .card { padding: 14px 14px; }
+    .card h2 { font-size: 12px; }
+    .demobar { font-size: 13px; }
+  }
   .card h2 .count { margin-left: auto; font-size: 10px; color: #555; }
   .empty { color: #555; font-size: 24px; padding: 4px 0; }
 
@@ -138,6 +149,7 @@
 <div id="app"></div>
 
 <script src="common.js"></script>
+<script src="demo.js"></script>
 <script>
 const app = document.getElementById("app");
 const params = new URLSearchParams(location.search);
@@ -581,6 +593,7 @@ function beep(freq, t, dur) {
   o.start(at); o.stop(at + dur + .02);
 }
 
+demoBanner(`<a href="parent.html">Try the parent page →</a>`);
 refresh();
 setInterval(refresh, 30000); // pick up the parent's changes
 </script>
