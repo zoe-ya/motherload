@@ -52,6 +52,17 @@
   .gate { max-width: 420px; margin: 12vh auto 0; text-align: center; }
   .gate input { width: 100%; text-align: center; font-size: 32px; letter-spacing: 8px; margin: 10px 0 14px; }
   .err { color: #d83a2b; font-size: 22px; min-height: 26px; }
+  .monthnav { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; font-family: var(--pixel); font-size: 12px; }
+  .cals { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .cal h3 { font-size: 22px; margin: 0; }
+  .cal .sum { font-size: 18px; color: #555; margin-bottom: 6px; }
+  .cal .days7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .cal .dow { font-family: var(--pixel); font-size: 8px; text-align: center; color: #3f3f3f; padding: 2px 0; }
+  .cal .d { background: #fff; border: 2px solid #000; aspect-ratio: 1; position: relative; font-size: 15px; line-height: 1; padding: 2px 3px; }
+  .cal .d.all { background: #b9f6ba; }
+  .cal .d.all::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; font-weight: bold; color: #1f8a2c; }
+  .cal .d.today { outline: 3px solid #e45c10; outline-offset: -1px; }
+  .cal .d.future { opacity: .45; }
 </style>
 </head>
 <body>
@@ -124,6 +135,7 @@ function render() {
       <div class="col">
         <section class="card" id="formCard"></section>
         <section class="card status"><h2>📊 Today's Progress</h2><div id="status"></div></section>
+        <section class="card"><h2>🏆 Monthly Progress</h2><div id="month"></div></section>
       </div>
       <div class="col">
         <section class="card list"><h2>📋 Everything Scheduled</h2><div id="list"></div></section>
@@ -141,7 +153,7 @@ function render() {
           <div class="row"><input type="password" id="newPin" placeholder="New PIN" style="flex:1"><button class="btn" id="setPin">SET PIN</button></div></section>
       </div>
     </div>`;
-  renderForm(); renderList(); renderStatus(); renderKids(); renderLayout();
+  renderForm(); renderList(); renderStatus(); renderMonth(); renderKids(); renderLayout();
 
   document.getElementById("saveKids").onclick = () => {
     document.querySelectorAll(".kid").forEach((el) => {
@@ -266,7 +278,46 @@ function renderStatus() {
     return `<div style="margin-bottom:12px"><b>${esc(k.emoji)} ${esc(k.name)}: ${done.length} of ${tasks.length} done</b>
       ${tasks.map((t) => `<div style="font-size:20px;color:${data.done[`${key}|${t.id}|${k.id}`] ? "#1f6b24" : "#555"}">${data.done[`${key}|${t.id}|${k.id}`] ? "★" : "☐"} ${esc(t.title)}</div>`).join("")}</div>`;
   }).join("") + `<button class="btn small" id="refreshStatus">↻ REFRESH</button>`;
-  document.getElementById("refreshStatus").onclick = async () => { data = await api("/api/data"); renderStatus(); };
+  document.getElementById("refreshStatus").onclick = async () => { data = await api("/api/data"); renderStatus(); renderMonth(); };
+}
+
+// Monthly calendars: a green check on each day a kid finished every task.
+let monthShown = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+// Items added later shouldn't count against earlier days. New item ids are their creation time in base 36.
+function existedOn(item, date) {
+  const made = parseInt(item.id, 36);
+  return !/^[0-9a-z]{8,}$/.test(item.id) || !(made > 1e12) || made < addDays(date, 1).setHours(0, 0, 0, 0);
+}
+
+function renderMonth() {
+  const y = monthShown.getFullYear(), m = monthShown.getMonth();
+  const prefix = ymd(monthShown).slice(0, 8);
+  const today = ymd(new Date());
+  const last = new Date(y, m + 1, 0).getDate();
+  const cals = data.settings.kids.map((k) => {
+    let perfect = 0, cells = "";
+    const crossed = Object.keys(data.done).filter((key) => key.startsWith(prefix) && key.endsWith("|" + k.id)).length;
+    for (let i = 0; i < new Date(y, m, 1).getDay(); i++) cells += "<div></div>";
+    for (let d = 1; d <= last; d++) {
+      const date = new Date(y, m, d), key = ymd(date);
+      const tasks = data.items.filter((i) => i.type === "task" && happensOn(i, date, k.id) && existedOn(i, date));
+      const all = key <= today && tasks.length > 0 && tasks.every((t) => data.done[`${key}|${t.id}|${k.id}`]);
+      if (all) perfect++;
+      cells += `<div class="d${all ? " all" : ""}${key === today ? " today" : ""}${key > today ? " future" : ""}" title="${all ? "All tasks done!" : ""}">${d}</div>`;
+    }
+    return `<div class="cal"><h3>${esc(k.emoji)} ${esc(k.name)}</h3>
+      <div class="sum">${crossed} task${crossed === 1 ? "" : "s"} crossed off · ${perfect} all-done day${perfect === 1 ? "" : "s"}</div>
+      <div class="days7">${DAY_SHORT.map((n) => `<div class="dow">${n[0]}</div>`).join("")}${cells}</div></div>`;
+  }).join("");
+  const thisMonth = ymd(new Date()).slice(0, 8) === prefix;
+  document.getElementById("month").innerHTML = `
+    <div class="monthnav"><button class="btn small" id="prevMonth">◀</button>
+      <span>${monthShown.toLocaleDateString(undefined, { month: "long", year: "numeric" }).toUpperCase()}</span>
+      <button class="btn small" id="nextMonth" ${thisMonth ? "disabled style=\"opacity:.4\"" : ""}>▶</button></div>
+    <div class="cals">${cals}</div>`;
+  document.getElementById("prevMonth").onclick = () => { monthShown = new Date(y, m - 1, 1); renderMonth(); };
+  document.getElementById("nextMonth").onclick = () => { if (!thisMonth) { monthShown = new Date(y, m + 1, 1); renderMonth(); } };
 }
 
 const ZONE_NAMES = { left: "LEFT COLUMN", right: "RIGHT COLUMN", wide: "FULL WIDTH (BOTTOM)", hidden: "HIDDEN" };
