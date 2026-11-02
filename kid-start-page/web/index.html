@@ -141,6 +141,9 @@
   .zenbox { position: relative; }
   .doodle .zenbox canvas.rocks { position: absolute; left: 0; top: 0; pointer-events: none; background: transparent; border-color: transparent; box-shadow: none; }
   .doodle .zenbox canvas.sand { cursor: grab; }
+  .tool.rake { width: 48px; height: 44px; color: #5b4630; }
+  html[data-theme="blueprint"] .tool.rake { color: var(--bp-ink); }
+  html[data-theme="rainbow"] .tool.rake { color: #7c3aed; }
 
   /* Kids Today: grown-ups see how everyone is doing */
   .kidrow { margin-bottom: 14px; }
@@ -624,8 +627,16 @@ const Doodle = {
 
 /* ---------- Zen garden ---------- */
 // Rake grooves into the sand around a few rocks. The rocks sit on their own layer so the rake passes "under" them.
-const RAKES = [[1, "STICK"], [3, "RAKE"], [5, "WIDE RAKE"], ["ripple", "◎ RIPPLES"]];
 const TINE_GAP = 14;
+// Little drawings of each tool: a stick, rakes with 3 and 5 teeth, and ripple rings.
+const rakeIcon = (xs) => `<svg viewBox="0 0 28 28" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+  <path d="M14 2V12M${xs[0]} 12H${xs[xs.length - 1]}${xs.map((x) => `M${x} 12V23`).join("")}"/></svg>`;
+const RAKES = [
+  [1, "Stick", `<svg viewBox="0 0 28 28" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 23L21 5"/><circle cx="6" cy="23" r="1.5" fill="currentColor"/></svg>`],
+  [3, "Rake", rakeIcon([7, 14, 21])],
+  [5, "Wide rake", rakeIcon([3, 8.5, 14, 19.5, 25])],
+  ["ripple", "Ripples", `<svg viewBox="0 0 28 28" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="14" cy="14" r="2.5" fill="currentColor"/><circle cx="14" cy="14" r="7"/><circle cx="14" cy="14" r="11.5"/></svg>`],
+];
 
 const Zen = {
   rake: 3, undo: [], rocks: null,
@@ -640,7 +651,7 @@ const Zen = {
         <button class="btn small" id="zSmooth">🌊 SMOOTH</button></h2>
       <div class="zenbox"><canvas class="sand" width="900" height="560"></canvas><canvas class="rocks" width="900" height="560"></canvas></div>
       <div class="dtools">
-        <div class="grp">${RAKES.map(([n, l]) => `<button class="tool" data-rake="${n}">${l}</button>`).join("")}</div>
+        <div class="grp">${RAKES.map(([n, label, icon]) => `<button class="tool rake" data-rake="${n}" title="${label}" aria-label="${label}">${icon}</button>`).join("")}</div>
         <div class="grp"><button class="tool" id="zRocks" title="Put the rocks somewhere new">🪨 NEW ROCKS</button></div>
       </div>`;
     this.canvas = el.querySelector("canvas.sand");
