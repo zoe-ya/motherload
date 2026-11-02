@@ -15,7 +15,8 @@ function addDays(d, n) {
 
 // Does this item happen on this date, for this kid?
 function happensOn(item, date, kidId) {
-  if (kidId && item.who !== "all" && item.who !== kidId) return false;
+  // "who" is "all", one player's id, or a list of ids.
+  if (kidId && item.who !== "all" && ![].concat(item.who).includes(kidId)) return false;
   const w = item.when || {};
   if (w.kind === "daily") return true;
   if (w.kind === "weekly") return (w.days || []).includes(date.getDay());
@@ -77,16 +78,17 @@ function linkify(text) {
 
 // The page's widgets and where they go unless the parent moves them.
 const WIDGETS = {
+  kids: "👀 Kids Today (grown-ups only)",
   verse: "📖 Verse of the Week",
   tasks: "✅ Today's Tasks",
   events: "📅 Happening Today",
   reminders: "📌 Reminders",
   timer: "⏱️ Timer",
-  doodle: "🎨 Doodle Pad",
+  doodle: "🎨 Doodle Pad / 🪨 Zen Garden",
   week: "🗓️ This Week",
 };
 const ZONES_ORDER = ["left", "right", "wide", "hidden"];
-const DEFAULT_LAYOUT = { left: ["verse", "tasks", "events", "reminders"], right: ["timer", "doodle"], wide: ["week"], hidden: [] };
+const DEFAULT_LAYOUT = { left: ["kids", "verse", "tasks", "events", "reminders"], right: ["timer", "doodle"], wide: ["week"], hidden: [] };
 
 // Makes sure every widget shows up exactly once, even if new widgets were added since the layout was saved.
 function normalizeLayout(layout) {
@@ -94,7 +96,8 @@ function normalizeLayout(layout) {
   for (const z of ZONES_ORDER) for (const w of (layout?.[z] || [])) {
     if (WIDGETS[w] && !seen.has(w)) { out[z].push(w); seen.add(w); }
   }
-  for (const z of ZONES_ORDER) for (const w of DEFAULT_LAYOUT[z]) if (!seen.has(w)) out[z].push(w);
+  // New widgets go where they'd sit in the default layout (so "kids" lands at the top).
+  for (const z of ZONES_ORDER) DEFAULT_LAYOUT[z].forEach((w, i) => { if (!seen.has(w)) out[z].splice(i, 0, w); });
   return out;
 }
 

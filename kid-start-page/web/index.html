@@ -135,10 +135,27 @@
   .tool .dot { background: #000; border-radius: 50%; }
   html[data-theme="jump"] .sw, html[data-theme="jump"] .tool { border-radius: 8px; }
 
+  /* Doodle pad or zen garden */
+  .playswitch { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .playswitch .btn:not(.on) { opacity: .5; }
+  .zenbox { position: relative; }
+  .doodle .zenbox canvas.rocks { position: absolute; left: 0; top: 0; pointer-events: none; background: transparent; border-color: transparent; box-shadow: none; }
+  .doodle .zenbox canvas.sand { cursor: grab; }
+
+  /* Kids Today: grown-ups see how everyone is doing */
+  .kidrow { margin-bottom: 14px; }
+  .kidrow:last-child { margin-bottom: 0; }
+  .kidrow .top { display: flex; align-items: center; gap: 8px; font-size: 24px; }
+  .kidrow .top .of { margin-left: auto; font-size: 19px; color: #555; }
+  .minibar { height: 10px; background: rgba(0,0,0,.15); border-radius: 99px; overflow: hidden; margin: 6px 0; }
+  .minibar > div { height: 100%; border-radius: 99px; transition: width .4s; }
+  .kt { font-size: 20px; color: #555; }
+  .kt.yes { color: #1f6b24; text-decoration: line-through; }
+
   .switch { color: #fff; text-shadow: 2px 2px 0 #000; font-size: 20px; text-align: center; margin-top: 24px; position: relative; z-index: 1; }
   .switch a { color: inherit; }
 </style>
-<link rel="stylesheet" href="themes.css?v=4">
+<link rel="stylesheet" href="themes.css?v=5">
 </head>
 <body>
 <div class="clouds"><div class="cloud" style="top:70px;animation-duration:95s;animation-delay:-20s"></div><div class="cloud" style="top:190px;animation-duration:130s;animation-delay:-80s;transform:scale(1.4)"></div><div class="cloud" style="top:330px;animation-duration:115s;animation-delay:-50s"></div></div>
@@ -150,8 +167,8 @@
 <div class="ground"></div>
 <div id="app"></div>
 
-<script src="common.js"></script>
-<script src="demo.js"></script>
+<script src="common.js?v=5"></script>
+<script src="demo.js?v=5"></script>
 <script>
 const app = document.getElementById("app");
 const params = new URLSearchParams(location.search);
@@ -184,9 +201,11 @@ function render() {
 
   if (!document.getElementById("main")) buildShell();
   applyTheme();
+  applyPlay();
   document.getElementById("avatar").textContent = kid.emoji || "🙂";
   document.getElementById("helloName").textContent = `${greeting()}, ${kid.name}!`;
   placeWidgets();
+  renderKidsToday();
   renderVerse();
   renderToday();
   renderWeek();
@@ -231,12 +250,15 @@ function buildShell() {
     <div class="grid" id="grid"><div class="col" id="zone-left"></div><div class="col" id="zone-right"></div></div>
     <div class="zoneWide" id="zone-wide"></div>
     <div class="stash" id="zone-hidden">
+      <section class="card" data-w="kids" id="kidsCard"><h2>👀 Kids Today</h2><div id="kidsToday"></div></section>
       <section class="card verse" data-w="verse"><h2>📖 Verse of the Week</h2><blockquote id="verseText"></blockquote><div class="ref" id="verseRef"></div></section>
       <section class="card" data-w="tasks"><h2>✅ Today's Tasks <span class="count" id="taskCount"></span></h2><div id="tasks"></div></section>
       <section class="card" data-w="events"><h2>📅 Happening Today</h2><div id="events"></div></section>
       <section class="card" data-w="reminders" id="remindersCard"><h2>📌 Reminders</h2><div class="notes" id="reminders"></div></section>
       <section class="card timer" data-w="timer" id="timer"></section>
-      <section class="card doodle" data-w="doodle" id="doodle"></section>
+      <section class="card doodle" data-w="doodle" id="doodle">
+        <div class="playswitch"><button class="btn small" data-play="doodle">🎨 DOODLE PAD</button><button class="btn small" data-play="zen">🪨 ZEN GARDEN</button></div>
+        <div id="doodlePane"></div><div id="zenPane"></div></section>
       <section class="card" data-w="week"><h2>🗓️ This Week</h2><div class="week" id="week"></div></section>
     </div>
     <div class="switch">Not you? <a href="#" id="switchKid">Switch kid</a> · <a href="parent.html">Parent page</a></div>
@@ -247,7 +269,33 @@ function buildShell() {
   document.querySelectorAll(".themes button").forEach((b) => b.onclick = () => { safeSet("theme-" + kidId, b.dataset.theme); applyTheme(); });
   tickClock();
   Timer.mount(document.getElementById("timer"));
-  Doodle.mount(document.getElementById("doodle"));
+  Doodle.mount(document.getElementById("doodlePane"));
+  Zen.mount(document.getElementById("zenPane"));
+  document.querySelectorAll("[data-play]").forEach((b) => b.onclick = () => { safeSet("play-" + kidId, b.dataset.play); applyPlay(); });
+}
+
+// Each player picks the doodle pad or the zen garden, remembered on their computer.
+function applyPlay() {
+  const p = safeGet("play-" + kidId) === "zen" ? "zen" : "doodle";
+  document.getElementById("doodlePane").style.display = p === "doodle" ? "" : "none";
+  document.getElementById("zenPane").style.display = p === "zen" ? "" : "none";
+  document.querySelectorAll("[data-play]").forEach((b) => b.classList.toggle("on", b.dataset.play === p));
+}
+
+// Grown-ups get a snapshot of every kid's tasks for today.
+function renderKidsToday() {
+  const card = document.getElementById("kidsCard");
+  const kids = data.settings.kids.filter((k) => !k.grownup);
+  if (!me().grownup || !kids.length) { card.style.display = "none"; return; }
+  card.style.display = "";
+  const today = new Date(), key = ymd(today);
+  document.getElementById("kidsToday").innerHTML = kids.map((k) => {
+    const tasks = data.items.filter((i) => i.type === "task" && happensOn(i, today, k.id)).sort(byTime);
+    const done = tasks.filter((t) => data.done[`${key}|${t.id}|${k.id}`]).length;
+    return `<div class="kidrow"><div class="top">${esc(k.emoji)} ${esc(k.name)}<span class="of">${tasks.length ? `${done} of ${tasks.length} done${done === tasks.length ? " 🎉" : ""}` : "No tasks today"}</span></div>
+      ${tasks.length ? `<div class="minibar"><div style="width:${(done / tasks.length) * 100}%;background:${esc(k.color)}"></div></div>` : ""}
+      ${tasks.map((t) => { const yes = data.done[`${key}|${t.id}|${k.id}`]; return `<div class="kt ${yes ? "yes" : ""}">${yes ? "✓" : "☐"} ${esc(t.title)}</div>`; }).join("")}</div>`;
+  }).join("");
 }
 
 // Moves each widget box into the area the parent picked. Moving (not rebuilding) keeps the timer and drawing intact.
@@ -572,6 +620,130 @@ const Doodle = {
   blank() { this.ctx.fillStyle = "#fff"; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height); },
   snapshot() { this.undo.push(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)); if (this.undo.length > 15) this.undo.shift(); },
   store() { try { localStorage.setItem(this.key(), this.canvas.toDataURL("image/png")); } catch {} },
+};
+
+/* ---------- Zen garden ---------- */
+// Rake grooves into the sand around a few rocks. The rocks sit on their own layer so the rake passes "under" them.
+const RAKES = [[1, "STICK"], [3, "RAKE"], [5, "WIDE RAKE"], ["ripple", "◎ RIPPLES"]];
+const TINE_GAP = 14;
+
+const Zen = {
+  rake: 3, undo: [], rocks: null,
+
+  key() { return "zen-" + kidId; },
+  rockKey() { return "zenrocks-" + kidId; },
+
+  mount(el) {
+    el.innerHTML = `
+      <h2>🪨 Zen Garden
+        <button class="btn small" id="zUndo" style="margin-left:auto">↶ UNDO</button>
+        <button class="btn small" id="zSmooth">🌊 SMOOTH</button></h2>
+      <div class="zenbox"><canvas class="sand" width="900" height="560"></canvas><canvas class="rocks" width="900" height="560"></canvas></div>
+      <div class="dtools">
+        <div class="grp">${RAKES.map(([n, l]) => `<button class="tool" data-rake="${n}">${l}</button>`).join("")}</div>
+        <div class="grp"><button class="tool" id="zRocks" title="Put the rocks somewhere new">🪨 NEW ROCKS</button></div>
+      </div>`;
+    this.canvas = el.querySelector("canvas.sand");
+    this.ctx = this.canvas.getContext("2d");
+    this.rockCtx = el.querySelector("canvas.rocks").getContext("2d");
+    try { this.rocks = JSON.parse(localStorage.getItem(this.rockKey())); } catch {}
+    if (!Array.isArray(this.rocks)) this.newRocks();
+    this.drawRocks();
+    let saved = null;
+    try { saved = localStorage.getItem(this.key()); } catch {}
+    if (saved) { const img = new Image(); img.onload = () => this.ctx.drawImage(img, 0, 0); img.src = saved; }
+    else this.smooth();
+
+    el.querySelectorAll("[data-rake]").forEach((b) => b.onclick = () => { this.rake = b.dataset.rake === "ripple" ? "ripple" : +b.dataset.rake; this.sync(el); });
+    el.querySelector("#zUndo").onclick = () => { const last = this.undo.pop(); if (last) { this.ctx.putImageData(last, 0, 0); this.store(); } };
+    el.querySelector("#zSmooth").onclick = () => { this.snapshot(); this.smooth(); this.store(); };
+    el.querySelector("#zRocks").onclick = () => { this.undo = []; this.newRocks(); this.drawRocks(); this.smooth(); this.store(); };
+
+    const c = this.canvas;
+    let last = null, prev = null;
+    const pos = (e) => { const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; };
+    c.onpointerdown = (e) => {
+      c.setPointerCapture(e.pointerId);
+      this.snapshot();
+      const p = pos(e);
+      if (this.rake === "ripple") { this.rings(p, [18, 32, 46, 60]); this.store(); return; }
+      last = p; prev = null;
+    };
+    c.onpointermove = (e) => {
+      if (!last) return;
+      const p = pos(e), dx = p[0] - last[0], dy = p[1] - last[1], d = Math.hypot(dx, dy);
+      if (d < 5) return;
+      // Each tine sits side by side, across the direction the rake is moving.
+      const nx = -dy / d, ny = dx / d;
+      const offs = Array.from({ length: this.rake }, (_, i) => (i - (this.rake - 1) / 2) * TINE_GAP);
+      const at = (q) => offs.map((o) => [q[0] + nx * o, q[1] + ny * o]);
+      const from = prev || at(last), to = at(p);
+      this.groove((ctx, s) => from.forEach((f, i) => { ctx.moveTo(f[0] + s, f[1] + s); ctx.lineTo(to[i][0] + s, to[i][1] + s); }));
+      prev = to; last = p;
+    };
+    c.onpointerup = c.onpointercancel = () => { if (last) { last = null; this.store(); } };
+    this.sync(el);
+  },
+
+  sync(el) { el.querySelectorAll("[data-rake]").forEach((b) => b.classList.toggle("on", String(this.rake) === b.dataset.rake)); },
+
+  // A groove is a shadowed line with a light edge next to it, so it looks pressed into the sand.
+  groove(path) {
+    const ctx = this.ctx;
+    ctx.lineCap = ctx.lineJoin = "round";
+    ctx.beginPath(); path(ctx, 0); ctx.strokeStyle = "rgba(140, 110, 66, .55)"; ctx.lineWidth = 3.4; ctx.stroke();
+    ctx.beginPath(); path(ctx, -1.4); ctx.strokeStyle = "rgba(255, 250, 236, .85)"; ctx.lineWidth = 1.5; ctx.stroke();
+  },
+
+  rings([x, y], radii) { this.groove((ctx, s) => radii.forEach((r) => { ctx.moveTo(x + s + r, y + s); ctx.arc(x + s, y + s, r, 0, Math.PI * 2); })); },
+
+  // Fresh sand with a little grain, then rings raked around each rock.
+  smooth() {
+    const ctx = this.ctx, w = this.canvas.width, h = this.canvas.height;
+    ctx.fillStyle = "#e9dbb8"; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 14000; i++) {
+      ctx.fillStyle = Math.random() < .5 ? "rgba(255, 255, 255, .35)" : "rgba(120, 95, 55, .16)";
+      ctx.fillRect(Math.random() * w, Math.random() * h, 1.6, 1.6);
+    }
+    for (const r of this.rocks) this.rings([r.x, r.y], [r.r + 14, r.r + 28, r.r + 42]);
+  },
+
+  newRocks() {
+    const rocks = [];
+    for (let tries = 0; rocks.length < 3 && tries < 200; tries++) {
+      const r = 26 + Math.random() * 24, x = 110 + Math.random() * 680, y = 100 + Math.random() * 360;
+      if (rocks.some((o) => Math.hypot(o.x - x, o.y - y) < o.r + r + 120)) continue;
+      const pts = Array.from({ length: 9 }, () => .8 + Math.random() * .3);
+      rocks.push({ x, y, r, pts, moss: Math.random() < .6 });
+    }
+    this.rocks = rocks;
+    safeSet(this.rockKey(), JSON.stringify(rocks));
+  },
+
+  drawRocks() {
+    const ctx = this.rockCtx;
+    ctx.clearRect(0, 0, 900, 560);
+    for (const { x, y, r, pts, moss } of this.rocks) {
+      const shape = () => {
+        ctx.beginPath();
+        const p = pts.map((k, i) => { const a = (i / pts.length) * Math.PI * 2; return [x + Math.cos(a) * r * k, y + Math.sin(a) * r * k * .78]; });
+        p.forEach((q, i) => { const n = p[(i + 1) % p.length], mx = (q[0] + n[0]) / 2, my = (q[1] + n[1]) / 2; i ? ctx.quadraticCurveTo(q[0], q[1], mx, my) : ctx.moveTo(mx, my); });
+        ctx.quadraticCurveTo(p[0][0], p[0][1], (p[0][0] + p[1][0]) / 2, (p[0][1] + p[1][1]) / 2);
+        ctx.closePath();
+      };
+      ctx.save();
+      ctx.shadowColor = "rgba(70, 50, 20, .45)"; ctx.shadowBlur = 14; ctx.shadowOffsetX = 6; ctx.shadowOffsetY = 8;
+      const g = ctx.createRadialGradient(x - r * .35, y - r * .4, r * .1, x, y, r * 1.1);
+      g.addColorStop(0, "#b8b6ad"); g.addColorStop(.6, "#7d7b72"); g.addColorStop(1, "#4f4d46");
+      shape(); ctx.fillStyle = g; ctx.fill();
+      ctx.restore();
+      if (moss) { ctx.fillStyle = "rgba(104, 136, 60, .75)"; ctx.beginPath(); ctx.ellipse(x - r * .25, y - r * .35, r * .35, r * .18, -.3, 0, Math.PI * 2); ctx.fill(); }
+    }
+  },
+
+  snapshot() { this.undo.push(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)); if (this.undo.length > 15) this.undo.shift(); },
+  // JPEG keeps the grainy sand small enough for the browser's storage.
+  store() { try { localStorage.setItem(this.key(), this.canvas.toDataURL("image/jpeg", .85)); } catch {} },
 };
 
 /* ---------- Sound ---------- */

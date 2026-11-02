@@ -46,6 +46,8 @@
   .kid .row input[type=text] { flex: 1; min-width: 120px; }
   .kid input[type=color] { width: 54px; height: 42px; padding: 2px; }
   .emoji { width: 70px; text-align: center; }
+  .grown { display: flex; align-items: center; gap: 8px; font-size: 19px; color: #555; margin-top: 6px; }
+  .grown input { width: 20px; height: 20px; }
   .status div { font-size: 22px; }
   .links code { display: block; background: #000; color: var(--xp); padding: 8px 10px; font-size: 22px; margin: 4px 0 10px; word-break: break-all; }
   .toast { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); background: #000; color: var(--xp); font-family: var(--pixel); font-size: 12px; padding: 14px 18px; border: 3px solid #fff; z-index: 10; display: none; }
@@ -70,8 +72,8 @@
 <div class="wrap" id="app"></div>
 <div class="toast" id="toast"></div>
 
-<script src="common.js"></script>
-<script src="demo.js"></script>
+<script src="common.js?v=5"></script>
+<script src="demo.js?v=5"></script>
 <script>
 const app = document.getElementById("app");
 let data = null;
@@ -161,6 +163,7 @@ function render() {
       k.name = el.querySelector(".nm").value.trim() || k.name;
       k.emoji = el.querySelector(".emoji").value.trim() || k.emoji;
       k.color = el.querySelector("input[type=color]").value;
+      k.grownup = el.querySelector(".gu").checked;
     });
     save();
   };
@@ -183,7 +186,8 @@ function renderForm() {
     <label class="f">TITLE</label>
     <input id="title" value="${esc(f.title)}" placeholder="${f.type === "event" ? "e.g. Soccer game" : f.type === "task" ? "e.g. Spelling worksheet" : "e.g. Library books due"}">
     <label class="f">FOR WHO?</label>
-    ${seg("who", [["all", "EVERYONE"], ...s.map((k) => [k.id, esc(k.name).toUpperCase()])], f.who)}
+    <div class="seg"><button class="btn small ${f.who === "all" ? "on" : ""}" data-who="all">EVERYONE</button>${s.map((k) => `<button class="btn small ${f.who !== "all" && [].concat(f.who).includes(k.id) ? "on" : ""}" data-who="${esc(k.id)}">${esc(k.name).toUpperCase()}</button>`).join("")}</div>
+    <div class="hint">Tap more than one name to pick a few players.</div>
     <label class="f">WHEN?</label>
     ${seg("kind", [["date", "ONE DAY"], ["weekly", "EVERY WEEK"], ["daily", "EVERY DAY"]], f.when.kind)}
     <div style="margin-top:8px">
@@ -209,7 +213,14 @@ function renderForm() {
     const d = card.querySelector("#date"); if (d) form.when.date = d.value;
   };
   card.querySelectorAll("[data-type]").forEach((b) => b.onclick = () => { keep(); form.type = b.dataset.type; renderForm(); });
-  card.querySelectorAll("[data-who]").forEach((b) => b.onclick = () => { keep(); form.who = b.dataset.who; renderForm(); });
+  // "who" is "all", one player's id, or a list of ids.
+  card.querySelectorAll("[data-who]").forEach((b) => b.onclick = () => {
+    keep();
+    const id = b.dataset.who, list = form.who === "all" ? [] : [].concat(form.who);
+    const next = id === "all" ? [] : list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+    form.who = !next.length ? "all" : next.length === 1 ? next[0] : next;
+    renderForm();
+  });
   card.querySelectorAll("[data-kind]").forEach((b) => b.onclick = () => { keep(); form.when.kind = b.dataset.kind; renderForm(); });
   card.querySelectorAll("[data-day]").forEach((b) => b.onclick = () => {
     keep(); const d = +b.dataset.day, days = form.when.days;
@@ -248,7 +259,7 @@ function renderList() {
     const items = live.filter((i) => i.type === type)
       .sort((a, b) => (a.when.date || "").localeCompare(b.when.date || "") || byTime(a, b));
     return `<h3>${label}</h3>` + (items.length ? items.map((i) => `
-      <div class="item"><div class="main"><div class="t">${esc(i.title)} ${whoTag(i.who)}</div>
+      <div class="item"><div class="main"><div class="t">${esc(i.title)} ${i.who === "all" ? whoTag("all") : [].concat(i.who).map(whoTag).join(" ")}</div>
         <div class="m">${describeWhen(i)}${i.time ? " · " + fmtTime(i.time) : ""}${i.note ? " · " + linkify(i.note) : ""}</div></div>
         <button class="btn small" data-edit="${esc(i.id)}">EDIT</button>
         <button class="btn small red" data-del="${esc(i.id)}">✕</button></div>`).join("")
@@ -369,7 +380,7 @@ function renderKids() {
       <input class="emoji" value="${esc(k.emoji)}" maxlength="4" title="Emoji">
       <input type="text" class="nm" value="${esc(k.name)}" placeholder="Name">
       <input type="color" value="${esc(k.color)}" title="Favorite color">
-    </div></div>`).join("");
+    </div><label class="grown"><input type="checkbox" class="gu" ${k.grownup ? "checked" : ""}> Grown-up: their page shows how the kids are doing</label></div>`).join("");
 }
 
 demoBanner(`<a href="./?kid=1">← Back to the kid page</a>`);
