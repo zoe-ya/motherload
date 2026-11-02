@@ -317,3 +317,97 @@ html[data-theme="rainbow"] .rainbowdeco { display: block; }
 .rainbowdeco span { position: fixed; z-index: 0; pointer-events: none; font-family: "VT323", monospace; opacity: .55;
   text-shadow: 0 0 8px currentColor; animation: twinkle 4s ease-in-out infinite; }
 @keyframes twinkle { 0%, 100% { opacity: .25; transform: translateY(-5px) scale(.9); } 50% { opacity: .8; transform: translateY(5px) scale(1.08); } }
+
+/* ---------- NIGHT: every theme, after dark ---------- */
+.nightbtn { margin-left: 6px; }
+.nightsky { display: none; }
+html[data-night] .nightsky, html[data-night] header .moon { display: block; }
+.nightsky span { position: fixed; z-index: 0; pointer-events: none; width: var(--s); height: var(--s); background: #fff; border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 255, 255, .8); animation: starblink 3.2s ease-in-out infinite; }
+@keyframes starblink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+/* The moon sits in the header, in whatever gap is left between the greeting and the clock. */
+header .moon { display: none; flex: none; pointer-events: none; width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fffbe8, #f3e7b3 70%);
+  box-shadow: 0 0 40px 10px rgba(255, 244, 200, .35), inset -8px -6px 0 rgba(0, 0, 0, .06); }
+html[data-night] .clouds { opacity: .18; }
+
+/* Shared dark panels and softer text */
+html[data-night] .card { color: #e8eaf0; }
+html[data-night] .card h2 .count, html[data-night] .empty, html[data-night] .task .n, html[data-night] .event .n,
+html[data-night] .timer .zone, html[data-night] .day h3 small, html[data-night] .chip small, html[data-night] .kt,
+html[data-night] .kidrow .top .of { color: #aab2c2; }
+html[data-night] .kt.yes { color: #6ee7a0; }
+html[data-night] .task.done .t { color: #8a909c; }
+html[data-night] .task:hover { background: rgba(255, 255, 255, .08); }
+html[data-night] .chip { background: #262a33; color: #e8eaf0; }
+html[data-night] .minibar { background: rgba(255, 255, 255, .15); }
+
+/* Block World at night: deep blue sky, a square moon, brighter lanterns */
+html[data-night][data-theme="blocks"] { --sky: #0b1433; --sky-low: #22305e; }
+html[data-night][data-theme="blocks"] header .moon { border-radius: 0; width: 56px; height: 56px; background: #eee9c8;
+  box-shadow: inset 12px 12px 0 -6px #d6cf9f, inset -10px -14px 0 -6px #d6cf9f, 0 0 0 4px rgba(255, 250, 210, .15), 0 0 40px rgba(255, 250, 210, .35); }
+html[data-night][data-theme="blocks"] .nightsky span { border-radius: 0; }
+html[data-night][data-theme="blocks"] .ground { filter: brightness(.5); }
+html[data-night][data-theme="blocks"] .blockhills { filter: brightness(.38) saturate(.8); }
+html[data-night][data-theme="blocks"] .lamp { animation-name: flickernight; }
+@keyframes flickernight { 0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 200, 80, .9)); } 50% { filter: drop-shadow(0 0 14px rgba(255, 200, 80, 1)); } }
+html[data-night][data-theme="blocks"] .card { background: #3b3b3b; box-shadow: inset 4px 4px 0 #5a5a5a, inset -4px -4px 0 #1e1e1e, 6px 6px 0 rgba(0,0,0,.4); }
+html[data-night][data-theme="blocks"] .card h2 { color: #d9d9d9; }
+html[data-night][data-theme="blocks"] .day { background: #474747; box-shadow: inset 3px 3px 0 #646464, inset -3px -3px 0 #2a2a2a; }
+html[data-night][data-theme="blocks"] .note { filter: brightness(.82); }
+html[data-night][data-theme="blocks"] .day.today { background: #3d7a1c; box-shadow: inset 3px 3px 0 #5fa832, inset -3px -3px 0 #24500e; }
+
+/* Jump World at night: dark sky, dim hills, the bees have gone to bed */
+html[data-night][data-theme="jump"] { --sky: #0e1747; --sky-low: #0e1747; }
+html[data-night][data-theme="jump"] .hills, html[data-night][data-theme="jump"] .flower { filter: brightness(.45); }
+html[data-night][data-theme="jump"] .ground { filter: brightness(.55); }
+html[data-night][data-theme="jump"] .bee { display: none; }
+html[data-night][data-theme="jump"] .card { background: #2a2440; }
+html[data-night][data-theme="jump"] .card h2 { color: #ff9a6b; }
+html[data-night][data-theme="jump"] .event { border-bottom-color: #4a4168; }
+html[data-night][data-theme="jump"] .note, html[data-night][data-theme="jump"] .day { background: #3a3357; color: #e8eaf0; }
+html[data-night][data-theme="jump"] .note .n { color: #aab2c2; }
+html[data-night][data-theme="jump"] .day.today { background: var(--gold); }
+html[data-night][data-theme="jump"] .day.today h3, html[data-night][data-theme="jump"] .day.today h3 small { color: #2b1d0e; }
+html[data-night][data-theme="jump"] .xp { background: #3a3357; }
+
+/* Blueprint at night: a real blueprint, white lines on deep blue */
+html[data-night][data-theme="blueprint"] { --bp-ink: #bfdbfe; --bp-dark: #e0ecff; background: #0d2a57; }
+html[data-night][data-theme="blueprint"] body { background-color: #0d2a57;
+  background-image:
+    linear-gradient(rgba(191, 219, 254, .2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(191, 219, 254, .2) 1px, transparent 1px),
+    linear-gradient(rgba(191, 219, 254, .08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(191, 219, 254, .08) 1px, transparent 1px); }
+html[data-night][data-theme="blueprint"] .card { background: rgba(13, 42, 87, .88); box-shadow: 3px 4px 0 rgba(0, 0, 0, .3); }
+html[data-night][data-theme="blueprint"] .note, html[data-night][data-theme="blueprint"] .day, html[data-night][data-theme="blueprint"] .chip { background: rgba(255, 255, 255, .06); color: var(--bp-dark); }
+html[data-night][data-theme="blueprint"] .day.today, html[data-night][data-theme="blueprint"] .task.done .box { background: rgba(147, 197, 253, .22); }
+html[data-night][data-theme="blueprint"] .hello p, html[data-night][data-theme="blueprint"] .switch { color: #cbd5e1; }
+html[data-night][data-theme="blueprint"] .clock .label, html[data-night][data-theme="blueprint"] .clock .date,
+html[data-night][data-theme="blueprint"] .event .when, html[data-night][data-theme="blueprint"] a.link { color: #93c5fd; border-color: #93c5fd; }
+html[data-night][data-theme="blueprint"] .task .n, html[data-night][data-theme="blueprint"] .event .n, html[data-night][data-theme="blueprint"] .note .n,
+html[data-night][data-theme="blueprint"] .empty, html[data-night][data-theme="blueprint"] .day h3 small, html[data-night][data-theme="blueprint"] .card h2 .count { color: #9fb3cf; }
+html[data-night][data-theme="blueprint"] .btn.green { color: #4ade80; border-color: #4ade80; }
+html[data-night][data-theme="blueprint"] .btn.red { color: #f87171; border-color: #f87171; }
+html[data-night][data-theme="blueprint"] .btn.preset.active, html[data-night][data-theme="blueprint"] .themes button.on { color: #0d2a57; }
+html[data-night][data-theme="blueprint"] .mathdeco span { color: rgba(191, 219, 254, .32); }
+html[data-night][data-theme="blueprint"] .timer svg circle { fill: rgba(255, 255, 255, .04); }
+html[data-night][data-theme="blueprint"] header .moon { background: transparent; border: 2px solid #bfdbfe; box-shadow: 0 0 20px rgba(191, 219, 254, .3); }
+
+/* Rainbow Code at night: darker glass, same glow */
+html[data-night][data-theme="rainbow"] body { background-color: #08031a; }
+html[data-night][data-theme="rainbow"] .card { background: linear-gradient(#21103a, #1a0d30) padding-box, var(--rb) border-box; color: #fce7f3; }
+html[data-night][data-theme="rainbow"] .card h2 { color: #ff8fd0; }
+html[data-night][data-theme="rainbow"] .card h2::before { color: #c4b5fd; }
+html[data-night][data-theme="rainbow"] .card h2 .count, html[data-night][data-theme="rainbow"] .empty, html[data-night][data-theme="rainbow"] .task .n,
+html[data-night][data-theme="rainbow"] .event .n, html[data-night][data-theme="rainbow"] .note .n, html[data-night][data-theme="rainbow"] .day h3 small,
+html[data-night][data-theme="rainbow"] .timer .zone { color: #e9a8f5; }
+html[data-night][data-theme="rainbow"] .verse blockquote, html[data-night][data-theme="rainbow"] .note { color: #fce7f3; }
+html[data-night][data-theme="rainbow"] .note, html[data-night][data-theme="rainbow"] .day, html[data-night][data-theme="rainbow"] .chip,
+html[data-night][data-theme="rainbow"] .box, html[data-night][data-theme="rainbow"] .xp, html[data-night][data-theme="rainbow"] .tool { background: #2a1545; border-color: #6b21a8; }
+html[data-night][data-theme="rainbow"] .day.today { background: linear-gradient(160deg, #4a1650, #2e1a5e); border-color: #f472b6; }
+html[data-night][data-theme="rainbow"] .day h3, html[data-night][data-theme="rainbow"] .event .when { color: #c4b5fd; }
+html[data-night][data-theme="rainbow"] .chip { color: #fce7f3; }
+html[data-night][data-theme="rainbow"] .event { border-bottom-color: #4c1d95; }
+html[data-night][data-theme="rainbow"] .xp span { color: #fff; text-shadow: 0 0 6px #a855f7; }
+html[data-night][data-theme="rainbow"] .tool.rake { color: #c4b5fd; }
