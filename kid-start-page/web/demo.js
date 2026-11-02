@@ -14,7 +14,9 @@ async function demoApi(path, body) {
   if (!demoSeed) demoSeed = await (await fetch("demo-data.json", { cache: "no-store" })).json();
   let state = null;
   try { state = JSON.parse(localStorage.getItem(DEMO_KEY)); } catch {}
-  if (!state) state = { items: demoSeed.items, kids: demoSeed.settings.kids, layout: demoSeed.settings.layout, done: {} };
+  // When the starter data changes (new players or items), returning visitors start fresh so they see it.
+  const seedSig = JSON.stringify([demoSeed.settings.kids, demoSeed.items.map((i) => i.id)]);
+  if (!state || state.seed !== seedSig) state = { seed: seedSig, items: demoSeed.items, kids: demoSeed.settings.kids, layout: demoSeed.settings.layout, done: {} };
   const save = () => { try { localStorage.setItem(DEMO_KEY, JSON.stringify(state)); } catch {} };
   const view = () => ({ items: state.items, done: state.done, verses: demoSeed.verses, settings: { kids: state.kids, layout: state.layout, hasPin: false } });
 
