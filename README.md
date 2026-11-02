@@ -42,7 +42,7 @@ A home page for my two school aged kids. One computer in the house runs it, and 
 3. **Start it** on the computer that will host it (it needs to stay on):
    - Windows: open the `kid-start-page` folder and double-click `Kid Start Page.bat`. If Windows Firewall asks, allow **Private networks** only.
    - Mac: open Terminal in the `kid-start-page` folder and run `python3 server.py`.
-4. **Set it up as the parent:** on that computer, go to `http://localhost:8080/parent`. Set a PIN, your kids' names and colors, and add their tasks.
+4. **Set it up as the parent:** on that computer, go to `http://localhost:8080/edit`. Set a PIN, your kids' names and colors, and add their tasks.
 5. **Open it on each kid's device** (same Wi‑Fi): go to `http://<host-computer-address>:8080/?kid=1` (or `?kid=2`). The address is the host's **IPv4 Address**, found by running `ipconfig` (Windows) or in System Settings → Network (Mac). It usually starts with `192.168.`.
    - On a laptop or desktop, make that link the browser's home page.
    - On an iPad, open it in Safari, then **Share → Add to Home Screen**.
@@ -61,5 +61,5 @@ Scripture quotations taken from The Holy Bible, New International Version® NIV�
 ### How it's built
 
 - `server.py` is a small Python web server that saves to `data.json`.
-- `web/index.html` is the kid page, `web/parent.html` is the parent page, and `web/common.js` is shared code.
+- `web/index.html` is the kid page, `web/edit.html` is the edit page for the parent, and `web/common.js` is shared code.
 - `web/theme.css` and `web/themes.css` hold the two looks.

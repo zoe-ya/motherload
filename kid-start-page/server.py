@@ -2,7 +2,7 @@
 
 Run:  python server.py
 Kids open  http://<this-computer>:8080/?kid=1  (or kid=2)
-Parent opens  http://<this-computer>:8080/parent
+Parent opens  http://<this-computer>:8080/edit
 """
 import glob
 import json
@@ -109,8 +109,9 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/data":
             with lock:
                 return self.send_json(public(load()))
-        if path in ("/parent", "/parent/"):
-            self.path = "/parent.html"
+        # The edit page used to be called the parent page; old links still work.
+        if path in ("/edit", "/edit/", "/parent", "/parent/", "/parent.html"):
+            self.path = "/edit.html"
         return super().do_GET()
 
     def do_POST(self):
@@ -163,6 +164,6 @@ if __name__ == "__main__":
     name = socket.gethostname()
     print("Homeschool home page is running.")
     print(f"  Kids:  http://{name}:8080/?kid=1   and   http://{name}:8080/?kid=2")
-    print(f"  Parent:   http://{name}:8080/parent")
+    print(f"  Edit page:   http://{name}:8080/edit")
     print("Leave this window open (you can minimize it). Close it to stop.")
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

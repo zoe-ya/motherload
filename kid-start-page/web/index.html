@@ -175,7 +175,7 @@
 <script>
 const app = document.getElementById("app");
 const params = new URLSearchParams(location.search);
-let kidId = params.get("kid") || safeGet("kid");
+let kidId = params.has("pick") ? null : params.get("kid") || safeGet("kid");
 let data = null;
 let lastDate = ymd(new Date());
 
@@ -232,7 +232,7 @@ function renderPicker() {
   app.innerHTML = `<div class="picker"><div>
     <h1>Choose your player</h1>
     <div class="choices">${s.map((k) => `<button style="background:${esc(k.color)}" data-id="${esc(k.id)}"><span>${esc(k.emoji)}</span>${esc(k.name)}</button>`).join("")}</div>
-    <a class="btn parentbtn" href="parent.html">🔒 Parent</a>
+    <a class="btn parentbtn" href="edit.html">🔒 Edit page</a>
   </div></div>`;
   app.querySelectorAll("button").forEach((b) => b.onclick = () => {
     kidId = b.dataset.id; safeSet("kid", kidId);
@@ -264,7 +264,7 @@ function buildShell() {
         <div id="doodlePane"></div><div id="zenPane"></div></section>
       <section class="card" data-w="week"><h2>🗓️ This Week</h2><div class="week" id="week"></div></section>
     </div>
-    <div class="switch">Not you? <a href="#" id="switchKid">Switch kid</a> · <a href="parent.html">Parent page</a></div>
+    <div class="switch">Not you? <a href="#" id="switchKid">Switch player</a> · <a href="edit.html">Edit page</a></div>
   </div>`;
   document.getElementById("switchKid").onclick = (e) => {
     e.preventDefault(); kidId = null; safeSet("kid", ""); history.replaceState(null, "", location.pathname); render();
@@ -780,7 +780,7 @@ function beep(freq, t, dur) {
   o.start(at); o.stop(at + dur + .02);
 }
 
-demoBanner(`<a href="parent.html">Try the parent page →</a>`);
+demoBanner(`<a href="edit.html">Try the edit page →</a>`);
 refresh();
 setInterval(refresh, 30000); // pick up the parent's changes
 </script>
