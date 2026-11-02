@@ -7,8 +7,13 @@ Parent opens  http://<this-computer>:8080/edit
 import glob
 import json
 import os
+import re
 import socket
 import threading
+import time
+import urllib.parse
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 PORT = 8080
@@ -84,6 +89,68 @@ def public(data):
     return out
 
 
+# ---------- Stock and crypto prices for the grown-ups' Markets box ----------
+# Prices come from Yahoo Finance's free public endpoints (no account or key). Only ticker symbols
+# and search words are sent. Answers are cached so many open pages still make only a few requests.
+YAHOO = "https://query1.finance.yahoo.com"
+QUOTE_TTL = 120     # seconds a price is reused
+SEARCH_TTL = 600
+_cache = {}
+_cache_lock = threading.Lock()
+TICKER = re.compile(r"^[A-Za-z0-9.^=\-]{1,15}$")
+
+
+def cached(key, ttl, fetch):
+    with _cache_lock:
+        hit = _cache.get(key)
+        if hit and time.time() - hit[0] < ttl:
+            return hit[1]
+    value = fetch()
+    with _cache_lock:
+        _cache[key] = (time.time(), value)
+        if len(_cache) > 500:
+            _cache.clear()
+    return value
+
+
+def yahoo(path):
+    req = urllib.request.Request(YAHOO + path, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=6) as r:
+        return json.load(r)
+
+
+def quote(symbol):
+    def fetch():
+        try:
+            m = yahoo(f"/v8/finance/chart/{urllib.parse.quote(symbol)}?range=1d&interval=1d")["chart"]["result"][0]["meta"]
+        except Exception:
+            return {"symbol": symbol.upper(), "error": True}
+        price, prev = m.get("regularMarketPrice"), m.get("chartPreviousClose")
+        pct = m.get("regularMarketChangePercent")
+        if pct is None and price and prev:
+            pct = (price - prev) / prev * 100
+        return {"symbol": m.get("symbol", symbol.upper()), "name": (m.get("shortName") or m.get("longName") or "").strip(),
+                "price": price, "pct": pct, "currency": m.get("currency", ""), "type": m.get("instrumentType", "")}
+    return cached("q:" + symbol.upper(), QUOTE_TTL, fetch)
+
+
+def quotes(symbols):
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        return list(pool.map(quote, symbols))
+
+
+def search(q):
+    def fetch():
+        try:
+            found = yahoo("/v1/finance/search?" + urllib.parse.urlencode({"q": q, "quotesCount": 8, "newsCount": 0}))["quotes"]
+        except Exception:
+            return []
+        keep = {"EQUITY", "ETF", "CRYPTOCURRENCY", "INDEX", "MUTUALFUND", "CURRENCY"}
+        return [{"symbol": f["symbol"], "name": (f.get("shortname") or f.get("longname") or "").strip(), "type": f.get("typeDisp", "")}
+                for f in found if f.get("quoteType") in keep and f.get("symbol")][:8]
+    return cached("s:" + q.lower(), SEARCH_TTL, fetch)
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=WEB, **kwargs)
@@ -109,6 +176,13 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/data":
             with lock:
                 return self.send_json(public(load()))
+        if path in ("/api/quotes", "/api/search"):
+            args = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+            if path == "/api/quotes":
+                symbols = [s for s in (args.get("s", [""])[0]).split(",") if TICKER.match(s)][:12]
+                return self.send_json(quotes(symbols))
+            q = args.get("q", [""])[0].strip()[:40]
+            return self.send_json(search(q) if len(q) >= 1 else [])
         # The edit page used to be called the parent page; old links still work.
         if path in ("/edit", "/edit/", "/parent", "/parent/", "/parent.html"):
             self.path = "/edit.html"

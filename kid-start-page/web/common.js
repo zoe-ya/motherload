@@ -83,12 +83,13 @@ const WIDGETS = {
   tasks: "✅ Today's Tasks",
   events: "📅 Happening Today",
   reminders: "📌 Reminders",
+  markets: "📈 Markets (grown-ups only)",
   timer: "⏱️ Timer",
   doodle: "🎨 Doodle Pad / 🪨 Zen Garden",
   week: "🗓️ This Week",
 };
 const ZONES_ORDER = ["left", "right", "wide", "hidden"];
-const DEFAULT_LAYOUT = { left: ["kids", "verse", "tasks", "events", "reminders"], right: ["timer", "doodle"], wide: ["week"], hidden: [] };
+const DEFAULT_LAYOUT = { left: ["kids", "verse", "tasks", "events", "reminders"], right: ["markets", "timer", "doodle"], wide: ["week"], hidden: [] };
 
 // Makes sure every widget shows up exactly once, even if new widgets were added since the layout was saved.
 function normalizeLayout(layout) {

@@ -145,6 +145,23 @@
   html[data-theme="blueprint"] .tool.rake { color: var(--bp-ink); }
   html[data-theme="rainbow"] .tool.rake { color: #7c3aed; }
 
+  /* Markets: a few stock and crypto prices for grown-ups */
+  .mrow { display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,.12); font-size: 21px; }
+  .mrow small { display: block; font-size: 15px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+  .mprice { font-variant-numeric: tabular-nums; }
+  .mpct { min-width: 82px; text-align: right; font-variant-numeric: tabular-nums; }
+  .mpct.up { color: #16a34a; } .mpct.down { color: #dc2626; }
+  html[data-night] .mpct.up { color: #4ade80; } html[data-night] .mpct.down { color: #f87171; }
+  html[data-night] .mrow { border-bottom-color: rgba(255,255,255,.12); }
+  .mdel { background: none; border: 0; cursor: pointer; opacity: .35; font-size: 16px; color: inherit; }
+  .mdel:hover { opacity: 1; }
+  .mktsearch { margin-top: 12px; position: relative; }
+  .markets input { width: 100%; font-size: 19px; background: rgba(255,255,255,.85); color: #222; border: 2px solid rgba(0,0,0,.3); border-radius: 8px; padding: 6px 10px; }
+  html[data-night] .markets input { background: rgba(0,0,0,.35); color: #eee; border-color: rgba(255,255,255,.25); }
+  #mktResults button { display: block; width: 100%; text-align: left; background: rgba(255,255,255,.9); color: #222; border: 0; border-bottom: 1px solid #ddd; padding: 7px 10px; font-size: 17px; cursor: pointer; font-family: inherit; }
+  #mktResults button:hover { background: #e0ecff; }
+  #mktResults small { opacity: .6; }
+
   /* Kids Today: grown-ups see how everyone is doing */
   .kidrow { margin-bottom: 14px; }
   .kidrow:last-child { margin-bottom: 0; }
@@ -158,7 +175,7 @@
   .switch { color: #fff; text-shadow: 2px 2px 0 #000; font-size: 20px; text-align: center; margin-top: 24px; position: relative; z-index: 1; }
   .switch a { color: inherit; }
 </style>
-<link rel="stylesheet" href="themes.css?v=8">
+<link rel="stylesheet" href="themes.css?v=9">
 </head>
 <body>
 <div class="clouds"><div class="cloud" style="top:70px;animation-duration:95s;animation-delay:-20s"></div><div class="cloud" style="top:190px;animation-duration:130s;animation-delay:-80s;transform:scale(1.4)"></div><div class="cloud" style="top:330px;animation-duration:115s;animation-delay:-50s"></div></div>
@@ -171,8 +188,8 @@
 <div class="ground"></div>
 <div id="app"></div>
 
-<script src="common.js?v=6"></script>
-<script src="demo.js?v=6"></script>
+<script src="common.js?v=7"></script>
+<script src="demo.js?v=7"></script>
 <script>
 const app = document.getElementById("app");
 const params = new URLSearchParams(location.search);
@@ -210,6 +227,7 @@ function render() {
   document.getElementById("helloName").textContent = `${greeting()}, ${kid.name}!`;
   placeWidgets();
   renderKidsToday();
+  Markets.show(!!kid.grownup);
   renderVerse();
   renderToday();
   renderWeek();
@@ -265,6 +283,9 @@ function buildShell() {
       <section class="card" data-w="tasks"><h2>✅ Today's Tasks <span class="count" id="taskCount"></span></h2><div id="tasks"></div></section>
       <section class="card" data-w="events"><h2>📅 Happening Today</h2><div id="events"></div></section>
       <section class="card" data-w="reminders" id="remindersCard"><h2>📌 Reminders</h2><div class="notes" id="reminders"></div></section>
+      <section class="card markets" data-w="markets" id="marketsCard"><h2>📈 Markets <span class="count" id="mktTime"></span></h2>
+        <div id="mktList"></div>
+        <div class="mktsearch"><input id="mktQ" placeholder="Add one: search Apple, TSLA, bitcoin…" autocomplete="off"><div id="mktResults"></div></div></section>
       <section class="card timer" data-w="timer" id="timer"></section>
       <section class="card doodle" data-w="doodle" id="doodle">
         <div class="playswitch"><button class="btn small" data-play="doodle">🎨 DOODLE PAD</button><button class="btn small" data-play="zen">🪨 ZEN GARDEN</button></div>
@@ -633,9 +654,87 @@ const Doodle = {
   store() { try { localStorage.setItem(this.key(), this.canvas.toDataURL("image/png")); } catch {} },
 };
 
+/* ---------- Markets (grown-ups only) ---------- */
+// Prices come through the home server, which asks Yahoo Finance and caches the answers.
+// It only updates every 5 minutes, and not at all while the page is in the background.
+const Markets = {
+  started: false, last: [],
+
+  key() { return "tickers-" + kidId; },
+  list() {
+    try { const t = JSON.parse(localStorage.getItem(this.key())); if (Array.isArray(t)) return t; } catch {}
+    return ["SPY", "AAPL", "BTC-USD", "ETH-USD"];
+  },
+  setList(t) { safeSet(this.key(), JSON.stringify(t)); },
+
+  show(on) {
+    document.getElementById("marketsCard").style.display = on ? "" : "none";
+    if (!on || this.started) return;
+    this.started = true;
+    this.wire();
+    this.load();
+    setInterval(() => { if (document.visibilityState === "visible") this.load(); }, 5 * 60 * 1000);
+  },
+
+  async load() {
+    const list = this.list();
+    if (window.DEMO) return this.draw(null, "Live prices work on the home version, where the home computer looks them up.");
+    if (!list.length) return this.draw([]);
+    try {
+      const res = await fetch("/api/quotes?s=" + encodeURIComponent(list.join(",")), { cache: "no-store" });
+      this.last = await res.json();
+      this.draw(this.last);
+    } catch { this.draw(this.last, "Can't get prices right now."); }
+  },
+
+  draw(rows, msg = "") {
+    const fmt = (q) => {
+      if (q.price == null) return "—";
+      const digits = q.price < 1 ? 4 : q.price < 100 ? 2 : q.price < 10000 ? 2 : 0;
+      const n = q.price.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+      return q.currency === "USD" ? "$" + n : `${n} ${esc(q.currency || "")}`;
+    };
+    document.getElementById("mktTime").textContent = rows && rows.length ? new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "";
+    document.getElementById("mktList").innerHTML = (rows || []).map((q) => `
+      <div class="mrow"><div><b>${esc(q.symbol)}</b><small>${q.error ? "Not found" : esc(q.name)}</small></div>
+        <div class="mprice">${q.error ? "" : fmt(q)}</div>
+        <div class="mpct ${q.pct > 0 ? "up" : q.pct < 0 ? "down" : ""}">${q.pct == null ? "" : `${q.pct > 0 ? "▲" : q.pct < 0 ? "▼" : ""} ${Math.abs(q.pct).toFixed(2)}%`}</div>
+        <button class="mdel" data-sym="${esc(q.symbol)}" title="Remove">✕</button></div>`).join("")
+      + (msg || (rows && !rows.length) ? `<div class="empty">${esc(msg || "Search below to add a stock or coin.")}</div>` : "");
+    document.querySelectorAll(".mdel").forEach((b) => b.onclick = () => {
+      this.setList(this.list().filter((s) => s.toUpperCase() !== b.dataset.sym.toUpperCase()));
+      this.last = this.last.filter((q) => q.symbol !== b.dataset.sym);
+      this.draw(this.last);
+    });
+  },
+
+  wire() {
+    const input = document.getElementById("mktQ"), out = document.getElementById("mktResults");
+    let t = null;
+    input.oninput = () => {
+      clearTimeout(t);
+      const q = input.value.trim();
+      if (!q || window.DEMO) { out.innerHTML = ""; return; }
+      t = setTimeout(async () => {
+        try {
+          const found = await (await fetch("/api/search?q=" + encodeURIComponent(q))).json();
+          out.innerHTML = found.length ? found.map((f) => `<button data-sym="${esc(f.symbol)}"><b>${esc(f.symbol)}</b> ${esc(f.name)} <small>${esc(f.type)}</small></button>`).join("")
+            : `<div class="empty">No matches.</div>`;
+          out.querySelectorAll("button").forEach((b) => b.onclick = () => {
+            const list = this.list();
+            if (!list.includes(b.dataset.sym)) this.setList([...list, b.dataset.sym].slice(-12));
+            input.value = ""; out.innerHTML = "";
+            this.load();
+          });
+        } catch { out.innerHTML = ""; }
+      }, 350);
+    };
+  },
+};
+
 /* ---------- Zen garden ---------- */
 // Rake grooves into the sand around a few rocks. The rocks sit on their own layer so the rake passes "under" them.
-const TINE_GAP = 14;
+const TINE_GAP = 17;
 // Little drawings of each tool: a stick, rakes with 3 and 5 teeth, and ripple rings.
 const rakeIcon = (xs) => `<svg viewBox="0 0 28 28" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
   <path d="M14 2V12M${xs[0]} 12H${xs[xs.length - 1]}${xs.map((x) => `M${x} 12V23`).join("")}"/></svg>`;
@@ -685,7 +784,7 @@ const Zen = {
       c.setPointerCapture(e.pointerId);
       this.snapshot();
       const p = pos(e);
-      if (this.rake === "ripple") { this.rings(p, [18, 32, 46, 60]); this.store(); return; }
+      if (this.rake === "ripple") { this.rings(p, [20, 37, 54, 71]); this.store(); return; }
       last = p; prev = null;
     };
     c.onpointermove = (e) => {
@@ -709,9 +808,14 @@ const Zen = {
   // A groove is a shadowed line with a light edge next to it, so it looks pressed into the sand.
   groove(path) {
     const ctx = this.ctx;
+    ctx.save();
     ctx.lineCap = ctx.lineJoin = "round";
-    ctx.beginPath(); path(ctx, 0); ctx.strokeStyle = "rgba(140, 110, 66, .55)"; ctx.lineWidth = 3.4; ctx.stroke();
-    ctx.beginPath(); path(ctx, -1.4); ctx.strokeStyle = "rgba(255, 250, 236, .85)"; ctx.lineWidth = 1.5; ctx.stroke();
+    // A soft blur makes the edges look like sand pushed aside, not ink.
+    ctx.filter = "blur(1.2px)";
+    ctx.beginPath(); path(ctx, 0); ctx.strokeStyle = "rgba(140, 110, 66, .5)"; ctx.lineWidth = 5.5; ctx.stroke();
+    ctx.filter = "blur(0.8px)";
+    ctx.beginPath(); path(ctx, -2.2); ctx.strokeStyle = "rgba(255, 250, 236, .75)"; ctx.lineWidth = 2.6; ctx.stroke();
+    ctx.restore();
   },
 
   rings([x, y], radii) { this.groove((ctx, s) => radii.forEach((r) => { ctx.moveTo(x + s + r, y + s); ctx.arc(x + s, y + s, r, 0, Math.PI * 2); })); },
@@ -724,7 +828,7 @@ const Zen = {
       ctx.fillStyle = Math.random() < .5 ? "rgba(255, 255, 255, .35)" : "rgba(120, 95, 55, .16)";
       ctx.fillRect(Math.random() * w, Math.random() * h, 1.6, 1.6);
     }
-    for (const r of this.rocks) this.rings([r.x, r.y], [r.r + 14, r.r + 28, r.r + 42]);
+    for (const r of this.rocks) this.rings([r.x, r.y], [r.r + 16, r.r + 33, r.r + 50]);
   },
 
   newRocks() {
