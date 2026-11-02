@@ -9,7 +9,17 @@
 <link rel="stylesheet" href="theme.css">
 <style>
   .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 24px 40px; }
-  h1 { font-family: var(--pixel); font-size: 22px; line-height: 1.5; color: #fff; text-shadow: 4px 4px 0 #000; margin: 6px 0 20px; }
+  /* Plain grey graph paper with a few pencils and erasers lying around */
+  html { background: #d9dbde; }
+  body { padding-bottom: 30px; background-color: #d9dbde;
+    background-image:
+      linear-gradient(rgba(0,0,0,.11) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,.11) 1px, transparent 1px),
+      linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; }
+  .desk svg { position: fixed; z-index: 0; pointer-events: none; filter: drop-shadow(3px 4px 0 rgba(0,0,0,.15)); }
+  h1 { font-family: var(--pixel); font-size: 22px; line-height: 1.5; color: #2b2b2b; text-shadow: 3px 3px 0 #fff; margin: 6px 0 20px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
   .col { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
@@ -46,7 +56,7 @@
   .kid .row input[type=text] { flex: 1; min-width: 120px; }
   .kid input[type=color] { width: 54px; height: 42px; padding: 2px; }
   .emoji { width: 70px; text-align: center; }
-  .switch { color: #fff; text-shadow: 2px 2px 0 #000; font-size: 22px; text-align: center; margin-top: 26px; line-height: 1.6; }
+  .switch { color: #2b2b2b; font-size: 22px; text-align: center; margin-top: 26px; line-height: 1.6; }
   .switch a { color: inherit; white-space: nowrap; }
   .grown { display: flex; align-items: center; gap: 8px; font-size: 19px; color: #555; margin-top: 6px; }
   .grown input { width: 20px; height: 20px; }
@@ -70,7 +80,7 @@
 </style>
 </head>
 <body>
-<div class="ground"></div>
+<div class="desk"><svg viewBox="0 0 142 22" width="142" height="22" style="left:1.5%;top:16%;transform:rotate(-38deg)"><path d="M22 3h96v16H22z" fill="#f5c518"/><path d="M22 9.5h96v3H22z" fill="#000" opacity=".12"/><path d="M118 3h10v16h-10z" fill="#b9bdc3"/><path d="M121.5 3v16M125 3v16" stroke="#8e939a" stroke-width="1.2"/><path d="M128 3h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-8z" fill="#f28fa3"/><path d="M22 3L2 11l20 8z" fill="#f1d3a5"/><path d="M8.5 8.4L2 11l6.5 2.6z" fill="#3b3b3b"/><path d="M2 11L22 3h118v16H22z" fill="none" stroke="#000" stroke-opacity=".25"/></svg><svg viewBox="0 0 66 32" width="66" height="32" style="left:3%;top:58%;transform:rotate(16deg)"><rect x="1" y="1" width="64" height="30" rx="5" fill="#f6a9ba"/><path d="M40 1h20a5 5 0 0 1 5 5v20a5 5 0 0 1-5 5H40z" fill="#7fb0e3"/><rect x="1" y="1" width="64" height="30" rx="5" fill="none" stroke="#000" stroke-opacity=".25"/><path d="M6 6h28" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"/></svg><svg viewBox="0 0 142 22" width="142" height="22" style="left:0.5%;bottom:7%;transform:rotate(6deg)"><path d="M22 3h96v16H22z" fill="#4f8fd8"/><path d="M22 9.5h96v3H22z" fill="#000" opacity=".12"/><path d="M118 3h10v16h-10z" fill="#b9bdc3"/><path d="M121.5 3v16M125 3v16" stroke="#8e939a" stroke-width="1.2"/><path d="M128 3h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-8z" fill="#f28fa3"/><path d="M22 3L2 11l20 8z" fill="#f1d3a5"/><path d="M8.5 8.4L2 11l6.5 2.6z" fill="#3b3b3b"/><path d="M2 11L22 3h118v16H22z" fill="none" stroke="#000" stroke-opacity=".25"/></svg><svg viewBox="0 0 142 22" width="142" height="22" style="right:1%;top:9%;transform:rotate(152deg)"><path d="M22 3h96v16H22z" fill="#e2584d"/><path d="M22 9.5h96v3H22z" fill="#000" opacity=".12"/><path d="M118 3h10v16h-10z" fill="#b9bdc3"/><path d="M121.5 3v16M125 3v16" stroke="#8e939a" stroke-width="1.2"/><path d="M128 3h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-8z" fill="#f28fa3"/><path d="M22 3L2 11l20 8z" fill="#f1d3a5"/><path d="M8.5 8.4L2 11l6.5 2.6z" fill="#3b3b3b"/><path d="M2 11L22 3h118v16H22z" fill="none" stroke="#000" stroke-opacity=".25"/></svg><svg viewBox="0 0 66 32" width="66" height="32" style="right:3%;top:44%;transform:rotate(-14deg)"><rect x="1" y="1" width="64" height="30" rx="5" fill="#fff3c4"/><path d="M40 1h20a5 5 0 0 1 5 5v20a5 5 0 0 1-5 5H40z" fill="#f28fa3"/><rect x="1" y="1" width="64" height="30" rx="5" fill="none" stroke="#000" stroke-opacity=".25"/><path d="M6 6h28" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"/></svg><svg viewBox="0 0 142 22" width="142" height="22" style="right:2%;bottom:12%;transform:rotate(-118deg)"><path d="M22 3h96v16H22z" fill="#5cb85c"/><path d="M22 9.5h96v3H22z" fill="#000" opacity=".12"/><path d="M118 3h10v16h-10z" fill="#b9bdc3"/><path d="M121.5 3v16M125 3v16" stroke="#8e939a" stroke-width="1.2"/><path d="M128 3h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-8z" fill="#f28fa3"/><path d="M22 3L2 11l20 8z" fill="#f1d3a5"/><path d="M8.5 8.4L2 11l6.5 2.6z" fill="#3b3b3b"/><path d="M2 11L22 3h118v16H22z" fill="none" stroke="#000" stroke-opacity=".25"/></svg></div>
 <div class="wrap" id="app"></div>
 <div class="toast" id="toast"></div>
 
