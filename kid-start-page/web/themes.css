@@ -1,7 +1,7 @@
-/* Two looks the kids can switch between: "blocks" (block-building world) and "jump" (platform-jumping world). */
+/* Looks the kids can switch between: "blocks", "jump", "blueprint" and "rainbow". */
 
 /* ---------- Theme switch (both themes) ---------- */
-.themes { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; }
+.themes { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 10px; }
 .themes button { font-family: var(--pixel); font-size: 9px; padding: 7px 9px; cursor: pointer; border: 3px solid #000; background: rgba(0,0,0,.35); color: #fff; text-shadow: none; }
 .themes button.on { background: #fff; color: #000; }
 @media (max-width: 900px) { .themes { justify-content: flex-start; } }
@@ -206,3 +206,114 @@ html[data-theme="blocks"] .col > .card:first-child::before {
   animation: flicker 2.6s ease-in-out infinite;
   background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 24' shape-rendering='crispEdges'%3E%3Crect x='7' y='0' width='2' height='3' fill='%233a3a3a'/%3E%3Crect x='4' y='3' width='8' height='2' fill='%233a3a3a'/%3E%3Crect x='3' y='5' width='10' height='13' fill='%233a3a3a'/%3E%3Crect x='5' y='7' width='6' height='9' fill='%23ffd36b'/%3E%3Crect x='6' y='8' width='4' height='6' fill='%23fff3c4'/%3E%3Crect x='4' y='18' width='8' height='3' fill='%233a3a3a'/%3E%3C/svg%3E");
 }
+
+/* ---------- RAINBOW CODE: neon rainbows on a midnight hacker grid ---------- */
+html[data-theme="rainbow"] {
+  --pixel: "VT323", "Consolas", monospace;
+  --body: "Nunito", "Segoe UI", sans-serif;
+  --rb: linear-gradient(90deg, #ff5c8a, #ffa94d, #ffe66d, #63e6be, #4dabf7, #b197fc);
+  --rb-pink: #db2777;
+  --rb-purple: #7c3aed;
+  --rb-glow: 0 0 10px rgba(255, 122, 198, .8), 0 0 22px rgba(177, 151, 252, .6);
+  background: #1a0b33;
+}
+html[data-theme="rainbow"] body {
+  font-weight: 800; font-size: 19px; color: #3b0764; padding-bottom: 60px;
+  background-color: #1a0b33;
+  background-image:
+    linear-gradient(rgba(255, 122, 198, .09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 249, 255, .07) 1px, transparent 1px),
+    radial-gradient(ellipse at 20% 0%, #4c1d95 0, transparent 60%),
+    radial-gradient(ellipse at 90% 100%, #831843 0, transparent 55%);
+  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%;
+}
+html[data-theme="rainbow"] .clouds, html[data-theme="rainbow"] .hills { display: none; }
+/* Rainbow stripes along the bottom */
+html[data-theme="rainbow"] .ground { height: 36px; border-top: 0; box-shadow: 0 0 24px rgba(255, 122, 198, .6);
+  background: linear-gradient(#ff5c8a 0 6px, #ffa94d 6px 12px, #ffe66d 12px 18px, #63e6be 18px 24px, #4dabf7 24px 30px, #b197fc 30px); }
+
+/* Header */
+html[data-theme="rainbow"] .hello h1 { color: #fff; text-shadow: var(--rb-glow); font-size: 30px; }
+html[data-theme="rainbow"] .hello p { color: #fbcfe8; text-shadow: none; font-size: 22px; }
+html[data-theme="rainbow"] .avatar { border: 3px solid #fff; border-radius: 22px; box-shadow: var(--rb-glow); }
+html[data-theme="rainbow"] .clock { color: #7df9ff; text-shadow: 0 0 10px rgba(125, 249, 255, .8); }
+html[data-theme="rainbow"] .clock .time { font-size: 64px; }
+html[data-theme="rainbow"] .clock .label, html[data-theme="rainbow"] .clock .date { font-size: 20px; color: #ff9bd8; text-shadow: none; }
+html[data-theme="rainbow"] .themes button { border: 2px solid #ff7ac6; border-radius: 99px; background: rgba(255, 255, 255, .08); color: #fff; font-size: 16px; padding: 5px 12px; }
+html[data-theme="rainbow"] .themes button.on { background: var(--rb); color: #3b0764; border-color: #fff; }
+
+/* Glassy panels with a rainbow edge */
+html[data-theme="rainbow"] .card {
+  position: relative; border: 3px solid transparent; border-radius: 20px;
+  background: linear-gradient(#fff7fc, #fbf2ff) padding-box, var(--rb) border-box;
+  box-shadow: 0 0 18px rgba(255, 122, 198, .45), 0 0 40px rgba(124, 58, 237, .25);
+}
+html[data-theme="rainbow"] .card h2 { color: var(--rb-pink); font-size: 26px; letter-spacing: 1px; }
+html[data-theme="rainbow"] .card h2::before { content: ">_"; color: var(--rb-purple); }
+html[data-theme="rainbow"] .card h2 .count { font-size: 18px; color: #86198f; }
+html[data-theme="rainbow"] .empty { color: #86198f; }
+/* A twinkling sparkle on the top box of each column */
+html[data-theme="rainbow"] .col > .card:first-child::after {
+  content: "✦"; position: absolute; top: -18px; right: 22px; font-size: 30px; color: #ffe66d; pointer-events: none;
+  text-shadow: 0 0 10px #ffe66d; animation: twinkle 2.4s ease-in-out infinite;
+}
+
+/* Candy pill buttons */
+html[data-theme="rainbow"] .btn { font-size: 20px; border: 0; border-radius: 99px; color: #fff; text-shadow: none; padding: 10px 18px;
+  background: linear-gradient(135deg, #ec4899, #a855f7); box-shadow: 0 4px 0 #6b21a8, 0 0 12px rgba(236, 72, 153, .45); }
+html[data-theme="rainbow"] .btn:hover { filter: brightness(1.1); background: linear-gradient(135deg, #f472b6, #c084fc); }
+html[data-theme="rainbow"] .btn.small { font-size: 16px; padding: 6px 12px; }
+html[data-theme="rainbow"] .btn.green { background: linear-gradient(135deg, #14b8a6, #22d3ee); box-shadow: 0 4px 0 #0e7490; }
+html[data-theme="rainbow"] .btn.red { background: linear-gradient(135deg, #f43f5e, #ec4899); box-shadow: 0 4px 0 #9f1239; }
+html[data-theme="rainbow"] .btn.gold { background: linear-gradient(135deg, #fbbf24, #fb7185); box-shadow: 0 4px 0 #be123c; }
+html[data-theme="rainbow"] .btn.preset.active { background: var(--rb); color: #3b0764; box-shadow: 0 4px 0 #6b21a8; }
+
+/* Tasks: heart bubbles that fill with rainbow */
+html[data-theme="rainbow"] .task { border-radius: 14px; }
+html[data-theme="rainbow"] .task:hover { background: rgba(244, 114, 182, .12); }
+html[data-theme="rainbow"] .task .t, html[data-theme="rainbow"] .event .t { font-size: 23px; }
+html[data-theme="rainbow"] .task .n, html[data-theme="rainbow"] .event .n { color: #86198f; font-size: 17px; }
+html[data-theme="rainbow"] .task.done .t { color: #a78bfa; }
+html[data-theme="rainbow"] .box { background: #fff; border: 3px solid #f472b6; border-radius: 50%; box-shadow: none; color: #fff; font-size: 0; }
+html[data-theme="rainbow"] .task.done .box { border-color: #fff; background: conic-gradient(#ff5c8a, #ffa94d, #ffe66d, #63e6be, #4dabf7, #b197fc, #ff5c8a);
+  box-shadow: 0 0 12px rgba(255, 122, 198, .8); text-shadow: none; animation: sparkle .5s; }
+html[data-theme="rainbow"] .task.done .box::after { content: "♥"; font-size: 22px; color: #fff; text-shadow: 0 0 4px #be185d; }
+@keyframes sparkle { 0% { transform: scale(.6) rotate(-30deg); } 60% { transform: scale(1.25) rotate(10deg); } 100% { transform: none; } }
+html[data-theme="rainbow"] .xp { background: #fce7f3; border: 2px solid #f9a8d4; border-radius: 99px; }
+html[data-theme="rainbow"] .xp > div { background: var(--rb); box-shadow: 0 0 10px rgba(255, 122, 198, .7); border-radius: 99px; }
+html[data-theme="rainbow"] .xp span { color: var(--rb-purple); text-shadow: 0 0 6px #fff, 0 0 6px #fff; font-size: 20px; }
+html[data-theme="rainbow"] .allDone { background: var(--rb); color: #3b0764; text-shadow: none; border: 0; border-radius: 16px; font-size: 22px; }
+
+/* Events, reminders, week */
+html[data-theme="rainbow"] .event { border-bottom: 2px dashed #f5d0fe; }
+html[data-theme="rainbow"] .event .when { color: var(--rb-purple); font-size: 18px; }
+html[data-theme="rainbow"] .note { background: #fdf2f8; background-image: none; border: 2px solid #f9a8d4; border-left: 8px solid #c084fc; border-radius: 14px; color: #4a044e; font-size: 20px; }
+html[data-theme="rainbow"] .note .n { color: #86198f; }
+html[data-theme="rainbow"] .verse blockquote { font-size: 23px; line-height: 1.35; color: #4a044e; }
+html[data-theme="rainbow"] .verse .ref { color: var(--rb-pink); font-size: 20px; }
+html[data-theme="rainbow"] a.link { background: linear-gradient(135deg, #7c3aed, #db2777); border: 0; border-radius: 99px; font-size: 16px; text-shadow: none; padding: 5px 12px; }
+html[data-theme="rainbow"] .day { background: #fff; border: 2px solid #e9d5ff; border-radius: 14px; box-shadow: none; }
+html[data-theme="rainbow"] .day.today { background: linear-gradient(160deg, #fce7f3, #ede9fe); border: 3px solid #f472b6; box-shadow: 0 0 12px rgba(244, 114, 182, .5); }
+html[data-theme="rainbow"] .day h3 { font-size: 20px; color: var(--rb-purple); }
+html[data-theme="rainbow"] .day h3 small { color: #86198f; font-size: 15px; }
+html[data-theme="rainbow"] .chip { border: 2px solid #f5d0fe; border-left-width: 6px; border-radius: 8px; font-size: 16px; }
+html[data-theme="rainbow"] .chip small { font-size: 14px; }
+
+/* Timer, doodle pad, player select */
+html[data-theme="rainbow"] .timer .readout { color: #c026d3; font-size: 50px; }
+html[data-theme="rainbow"] .timer .zone { color: #86198f; font-size: 18px; }
+html[data-theme="rainbow"] .doodle canvas { border: 3px solid #f472b6; border-radius: 16px; }
+html[data-theme="rainbow"] .sw, html[data-theme="rainbow"] .tool { border: 2px solid #c084fc; border-radius: 10px; }
+html[data-theme="rainbow"] .tool { background: #fdf2f8; }
+html[data-theme="rainbow"] .switch { color: #fbcfe8; text-shadow: none; }
+html[data-theme="rainbow"] .picker h1 { color: #fff; text-shadow: var(--rb-glow); font-size: 40px; }
+html[data-theme="rainbow"] .picker button { font-size: 22px; border: 3px solid #fff; border-radius: 24px; text-shadow: 0 2px 4px rgba(0, 0, 0, .4); box-shadow: var(--rb-glow); }
+
+/* A soft rainbow arc plus floating hearts, stars, locks and code (Rainbow Code only) */
+.rainbowdeco { display: none; }
+html[data-theme="rainbow"] .rainbowdeco { display: block; }
+.rainbowdeco .arc { position: fixed; z-index: 0; pointer-events: none; right: -160px; bottom: -260px; width: 620px; height: 620px; border-radius: 50%; opacity: .28;
+  background: radial-gradient(circle, transparent 0 52%, #b197fc 52% 56%, #4dabf7 56% 60%, #63e6be 60% 64%, #ffe66d 64% 68%, #ffa94d 68% 72%, #ff5c8a 72% 76%, transparent 76%); }
+.rainbowdeco span { position: fixed; z-index: 0; pointer-events: none; font-family: "VT323", monospace; opacity: .55;
+  text-shadow: 0 0 8px currentColor; animation: twinkle 4s ease-in-out infinite; }
+@keyframes twinkle { 0%, 100% { opacity: .25; transform: translateY(-5px) scale(.9); } 50% { opacity: .8; transform: translateY(5px) scale(1.08); } }
