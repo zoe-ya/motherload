@@ -502,25 +502,37 @@ const Timer = {
       el.querySelector("#bigBtn").textContent = el.classList.contains("big") ? "✕ Close" : "⛶ Big";
     };
     this.draw();
+    this.arm();
     setInterval(() => this.draw(), 250);
+  },
+
+  // Browsers slow down repeating timers in background tabs (up to once a minute), but a single
+  // timeout set for the end still fires on time, so the alarm isn't late when the tab is hidden.
+  arm() {
+    clearTimeout(this.alarm);
+    const s = this.state;
+    if (s.endAt && s.endAt > Date.now()) this.alarm = setTimeout(() => this.draw(), s.endAt - Date.now() + 50);
   },
 
   set(min) {
     this.state = { total: min * 60, endAt: null, left: min * 60 };
     this.finishedShown = false;
-    this.save(); this.draw();
+    TimeUp.stop();
+    this.save(); this.arm(); this.draw();
   },
 
   toggle() {
     const s = this.state;
     unlockAudio();
+    TimeUp.stop();
     if (s.endAt) { s.left = this.remaining(); s.endAt = null; }
     else {
       if (s.left <= 0) s.left = s.total;
       s.endAt = Date.now() + s.left * 1000;
       this.finishedShown = false;
+      TimeUp.askPermission();
     }
-    this.save(); this.draw();
+    this.save(); this.arm(); this.draw();
   },
 
   draw() {
@@ -549,9 +561,51 @@ const Timer = {
     this.el.querySelectorAll(".preset").forEach((b) => b.classList.toggle("active", +b.dataset.m * 60 === s.total));
     this.el.classList.toggle("finished", left <= 0 && !!s.endAt);
 
-    if (left <= 0 && s.endAt && !this.finishedShown) { this.finishedShown = true; chime(); }
+    if (left <= 0 && s.endAt && !this.finishedShown) { this.finishedShown = true; chime(); TimeUp.start(); }
   },
 };
+
+// When time's up, get attention from another tab: blink the tab's title and icon, and (where the
+// browser allows it) show a notification that brings this tab to the front when clicked.
+// Browsers don't let a page jump in front by itself, so this is as close as a web page can get.
+const TimeUp = {
+  blink: null, title: "",
+
+  askPermission() {
+    try { if (window.Notification && Notification.permission === "default") Notification.requestPermission().catch(() => {}); } catch {}
+  },
+
+  start() {
+    this.stop();
+    this.title = document.title;
+    let on = false;
+    this.icon("⏰");
+    this.blink = setInterval(() => { on = !on; document.title = on ? "⏰ TIME'S UP!" : this.title; }, 900);
+    try {
+      if (window.Notification && Notification.permission === "granted") {
+        const n = new Notification("⏰ Time's up!", { body: `${me()?.name ? me().name + "'s" : "Your"} timer is done.`, tag: "timer", requireInteraction: true });
+        n.onclick = () => { window.focus(); n.close(); this.stop(); };
+      }
+    } catch {}
+  },
+
+  stop() {
+    if (!this.blink) return;
+    clearInterval(this.blink); this.blink = null;
+    document.title = this.title;
+    this.icon(null);
+  },
+
+  icon(emoji) {
+    let link = document.getElementById("favicon");
+    if (!emoji) { link?.remove(); return; }
+    if (!link) { link = document.createElement("link"); link.id = "favicon"; link.rel = "icon"; document.head.appendChild(link); }
+    link.href = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">${emoji}</text></svg>`)}`;
+  },
+};
+// Blinking stops once someone is looking: they come back to the tab, or tap anywhere on it.
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") setTimeout(() => TimeUp.stop(), 3000); });
+document.addEventListener("pointerdown", () => TimeUp.stop());
 
 // Angle 0 is the top of the face; minutes go clockwise like a real visual timer.
 function pt(r, m) {
