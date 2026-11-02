@@ -29,21 +29,25 @@ DEFAULT_DATA = {
         "kids": [
             {"id": "1", "name": "Kid 1", "color": "#3b82f6", "emoji": "🚀"},
             {"id": "2", "name": "Kid 2", "color": "#ec4899", "emoji": "🌟"},
+            # A grown-up's page also shows how the kids are doing, plus stock and crypto prices.
+            {"id": "3", "name": "Parent", "color": "#7c3aed", "emoji": "☕", "grownup": True},
         ],
     },
     # when: {"kind": "date", "date": "YYYY-MM-DD"} | {"kind": "weekly", "days": [0-6, Sun=0]} | {"kind": "daily"}
     "items": [
-        {"id": "seed1", "type": "task", "title": "Piano practice", "who": "all",
+        {"id": "seed1", "type": "task", "title": "Piano practice", "who": ["1", "2"],
          "when": {"kind": "weekly", "days": [1, 3, 5]}, "time": "", "note": "20 minutes of scales and songs"},
-        {"id": "seed2", "type": "event", "title": "Soccer practice", "who": "all",
+        {"id": "seed2", "type": "event", "title": "Soccer practice", "who": ["1", "2"],
          "when": {"kind": "weekly", "days": [1, 3]}, "time": "16:00", "note": "Bring cleats and water"},
-        {"id": "seed3", "type": "event", "title": "Soccer game", "who": "all",
+        {"id": "seed3", "type": "event", "title": "Soccer game", "who": ["1", "2"],
          "when": {"kind": "weekly", "days": [6]}, "time": "09:00", "note": "Wear your team shirt"},
-        {"id": "seed4", "type": "task", "title": "Math lesson", "who": "all",
+        {"id": "seed4", "type": "task", "title": "Math lesson", "who": ["1", "2"],
          "when": {"kind": "weekly", "days": [1, 2, 3, 4, 5]}, "time": "", "note": "https://www.synthesis.com/tutor"},
-        {"id": "seed5", "type": "task", "title": "Read for 30 minutes", "who": "all",
+        {"id": "seed5", "type": "task", "title": "Read for 30 minutes", "who": ["1", "2"],
          "when": {"kind": "daily"}, "time": "", "note": ""},
-        {"id": "seed6", "type": "reminder", "title": "Make your bed and brush your teeth", "who": "all",
+        {"id": "seed6", "type": "reminder", "title": "Make your bed and brush your teeth", "who": ["1", "2"],
+         "when": {"kind": "daily"}, "time": "", "note": ""},
+        {"id": "seed7", "type": "reminder", "title": "Plan tomorrow's dinner", "who": "3",
          "when": {"kind": "daily"}, "time": "", "note": ""},
     ],
     "done": {},  # "YYYY-MM-DD|itemId|kidId": true
